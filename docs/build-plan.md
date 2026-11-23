@@ -3,7 +3,7 @@
 About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2) is the most likely place to run long. Every milestone ends with something working and committed.
 
 ## Milestone 0: setup (week 1)
-- [ ] Create the public GitHub repo and push these starter files
+- [x] Create the public GitHub repo and push these starter files
 - [ ] Scaffold Next.js with TypeScript (strict), ESLint and Vitest
 - [ ] Create the second Supabase project; enable pgvector; create the `raw-filings` bucket
 - [ ] Add `.env.local` from `.env.example`; set a monthly spend limit in the Claude Console
