@@ -1,0 +1,31 @@
+# Decision log
+
+Each entry: date, decision, why, alternatives considered. Useful for interviews: "why did you build it this way?"
+
+## 2026-11-23: Build an SEC filing analyst as the portfolio project
+- **Why:** real, free public data; builds AI engineering skills employers ask for (retrieval, citations, extraction, evals); closes my gap in reading financial statements.
+- **Alternatives:** portfolio risk dashboard (easier, but AI would be a thin layer); cash-flow tool on Off the Wall data (no real data yet).
+
+## 2026-11-23: Value comes from the text, not the ratios
+- **Why:** ratios and EPS are free elsewhere. The product is cited answers about *why*, and detecting changes between filings. Ratios check the AI, trigger red flags and feed evals.
+
+## 2026-11-23: Retail only for version one
+- **Why:** consistent metrics across companies, meaningful red flags, faster to a working demo, manageable evals.
+- **Guardrails:** sector profiles from day one; missing data → "not applicable"; 5–6 retailers for parsing variety; one non-retail company as a crash test.
+- **Alternatives:** mixed sectors from the start (more general, slower); 3 retailers (too little variety).
+
+## 2026-11-23: Next.js on Vercel for the frontend and API routes
+- **Why:** one project for UI and server endpoints; free Hobby hosting for a personal project.
+- **Alternatives:** Vite + React with Supabase Edge Functions.
+
+## 2026-11-23: Ingestion runs as a Node script, not a serverless function
+- **Why:** large downloads and embedding can exceed serverless time limits.
+
+## 2026-11-23: Numbers from XBRL; Claude for text only
+- **Why:** accuracy. The AI never produces a financial figure; code reads it from tagged data.
+
+## 2026-11-23: Voyage for embeddings, pgvector in Supabase for search
+- **Why:** Anthropic doesn't offer an embedding model; Voyage's free tier covers v1; pgvector avoids a separate vector database.
+
+## 2026-11-23: Public repo from day one; Claude Code teaches as it builds
+- **Why:** employers can see progress and commit history; I need to understand and explain every part.

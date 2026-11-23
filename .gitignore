@@ -1,0 +1,17 @@
+# Secrets
+.env
+.env.local
+.env*.local
+
+# Dependencies and builds
+node_modules/
+.next/
+out/
+dist/
+coverage/
+
+# Local data
+*.log
+.DS_Store
+Thumbs.db
+tmp/
