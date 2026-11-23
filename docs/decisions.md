@@ -37,3 +37,9 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 ## 2026-11-23: Develop inside WSL (Linux), not directly on Windows
 - **Why:** Windows Smart App Control blocks an unsigned compiled file that Vitest needs (Rolldown's native binding), so tests couldn't run on Windows. WSL runs the same OS as GitHub Actions and Vercel, so local results match CI, and Smart App Control stays on.
 - **Alternatives:** a local WebAssembly patch (works, but must be re-applied after every `npm install` and can't go in `package.json` because it breaks clean installs); turning off Smart App Control (lowers the PC's protection).
+
+## 2026-11-23: Supabase CLI for migrations; pgvector and the storage bucket are migrations too
+- **Why:** `npm run db:migrate` (`supabase db push --remote`) applies only migrations that haven't run and records them in the database, so the schema is reproducible and never edited by hand. Creating the `raw-filings` bucket and enabling pgvector in SQL keeps the whole setup in Git.
+- **Details:** bucket is private with no access policies (service-role key only), 50 MB per file (free-plan maximum), HTML only. pgvector lives in the `extensions` schema, as Supabase recommends. Project region East US, close to Vercel's default region.
+- **Note:** Supabase CLI 3.x targets a local Docker database by default; commands for the real project need `--remote`.
+- **Alternatives:** pasting SQL into the dashboard editor (no dependency, but nothing tracks what ran).

@@ -5,7 +5,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 ## Milestone 0: setup (week 1)
 - [x] Create the public GitHub repo and push these starter files
 - [x] Scaffold Next.js with TypeScript (strict), ESLint and Vitest
-- [ ] Create the second Supabase project; enable pgvector; create the `raw-filings` bucket
+- [x] Create the second Supabase project; enable pgvector; create the `raw-filings` bucket
 - [ ] Add `.env.local` from `.env.example`; set a monthly spend limit in the Claude Console
 - [ ] GitHub Actions workflow that runs lint and tests on every push
 - [ ] Short TypeScript primer for me: types, interfaces, async/await, modules
