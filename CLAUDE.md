@@ -46,7 +46,7 @@ Standing instructions for Claude Code on the Filing Analyst project. Read this, 
 
 ### Secrets
 - Keys live only in `.env.local`, which is gitignored. Keep `.env.example` updated with variable names and no values.
-- The Supabase service-role key is used only in server code and scripts, never in browser code.
+- The Supabase secret key (`SUPABASE_SECRET_KEY`, formerly the service-role key) is used only in server code and scripts, never in browser code or a `NEXT_PUBLIC_` variable.
 - Before every commit, check that no key or `.env` file is staged.
 
 ## Project conventions

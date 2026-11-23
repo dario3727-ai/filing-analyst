@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "supabase db push --remote",
-    "db:new": "supabase migration new"
+    "db:new": "supabase migration new",
+    "check:env": "node --env-file-if-exists=.env.local scripts/check-env.ts"
   },
   "dependencies": {
     "next": "16.4.6",
@@ -29,5 +30,6 @@
     "tailwindcss": "4.3.3",
     "typescript": "^5",
     "vitest": "^5.1.1"
-  }
+  },
+  "type": "module"
 }
