@@ -15,3 +15,11 @@ coverage/
 .DS_Store
 Thumbs.db
 tmp/
+
+# Next.js / TypeScript / Vercel
+/build
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+*.pem
+npm-debug.log*

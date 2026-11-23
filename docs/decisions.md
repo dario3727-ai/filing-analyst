@@ -29,3 +29,11 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 
 ## 2026-11-23: Public repo from day one; Claude Code teaches as it builds
 - **Why:** employers can see progress and commit history; I need to understand and explain every part.
+
+## 2026-11-23: Tailwind CSS for styling
+- **Why:** the default with Next.js; quick to build the mockup's three screens in milestone 4; free.
+- **Alternatives:** plain CSS / CSS Modules (nothing extra to learn, but slower to build the UI).
+
+## 2026-11-23: Develop inside WSL (Linux), not directly on Windows
+- **Why:** Windows Smart App Control blocks an unsigned compiled file that Vitest needs (Rolldown's native binding), so tests couldn't run on Windows. WSL runs the same OS as GitHub Actions and Vercel, so local results match CI, and Smart App Control stays on.
+- **Alternatives:** a local WebAssembly patch (works, but must be re-applied after every `npm install` and can't go in `package.json` because it breaks clean installs); turning off Smart App Control (lowers the PC's protection).
