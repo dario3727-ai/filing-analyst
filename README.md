@@ -2,7 +2,7 @@
 
 An AI tool that reads 10-K filings and explains *why* the numbers moved, with every claim cited to the exact passage and checked against the company's reported data.
 
-> Status: milestone 1 of 6 complete. The numbers pipeline loads any company's SEC data and computes ratios and red flags for the seven test-set companies. Next: filing text. See [docs/build-plan.md](docs/build-plan.md).
+> Status: milestones 1 and 2 of 6 complete. The pipeline loads a company's SEC data, computes ratios and red flags, and turns its 10-Ks into searchable passages (all five key sections found in 21 of 21 filings). Next: search and Q&A. See [docs/build-plan.md](docs/build-plan.md).
 
 ## What it does
 
@@ -102,6 +102,7 @@ Load data and run the app:
 npm run ingest -- --ticker WMT --from 2023 --to 2025   # one company
 npm run ingest:test-set                                # all seven (default window 2023–2025)
 npm run profile:coverage                               # which XBRL tag fed each input
+npm run coverage                                       # which 10-K sections were found, per filing
 npm run dev                                            # http://localhost:3000
 ```
 

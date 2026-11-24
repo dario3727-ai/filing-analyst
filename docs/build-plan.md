@@ -32,9 +32,10 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] Section parser: find Items 1, 1A, 7, 7A, 8; skip the table of contents
 - [x] Chunker: passages of a few hundred tokens with page and section metadata
 - [x] Migrations for `sections` and `chunks`
-- [ ] Parser tests for every test-set company
-- [ ] Coverage report: share of filings where all key sections were found
+- [x] Parser tests for every test-set company
+- [x] Coverage report: share of filings where all key sections were found
 - **Done when:** coverage is 100% for the retail test set, or each failure is explained.
+- **Milestone 2 completed 2026-11-24:** `npm run coverage` shows all five sections in 21 of 21 parsed 10-Ks (fiscal 2023–2025, all seven companies, crash test included): 105 sections, 4,874 passages.
 
 ## Milestone 3: search and Q&A (week 5)
 - [ ] Voyage embeddings for all chunks, in batches

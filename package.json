@@ -19,7 +19,8 @@
     "fixtures:save": "node --env-file-if-exists=.env.local scripts/save-fixtures.ts",
     "inspect:headings": "node scripts/inspect-headings.ts",
     "inspect:sections": "node scripts/inspect-sections.ts",
-    "inspect:chunks": "node scripts/inspect-chunks.ts"
+    "inspect:chunks": "node scripts/inspect-chunks.ts",
+    "coverage": "node --env-file-if-exists=.env.local scripts/coverage.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
