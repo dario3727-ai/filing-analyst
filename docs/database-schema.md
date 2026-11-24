@@ -2,71 +2,88 @@
 
 A starting point, not final. Change it through migrations as real data teaches us more. Expected size for v1 (7 companies; all XBRL years, 10-K text for a window of up to ~7 years): roughly 200 MB, under the Supabase free tier's 500 MB. Measured and estimated figures are in `docs/decisions.md` (2026-11-24).
 
+## Conventions
+
+- **Fiscal year:** `fiscal_year` is the calendar year in which most of the fiscal year's months fall: a year ending 2026-01-31 is 2025, one ending 2026-08-30 is 2026. It's derived from period dates, never from the SEC's `fy` field, which is the year of the *filing* that reported a number (a 10-K repeats two prior years under its own `fy`). The UI shows "FY ending Jan 31, 2026" alongside the label.
+- **Access:** row-level security is on for every table. `companies`, `filings`, `financial_facts`, `ratios` and `red_flags` have a read-only policy for the browser key; nothing else is readable or writable without the secret key.
+- Tables marked *(built)* exist via migrations in `supabase/migrations/`; the rest are still drafts.
+
 ## Tables
 
-### companies
+### companies *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| cik | text, unique | 10-digit, zero-padded |
-| ticker | text | |
+| id | bigint identity, PK | |
+| cik | text, unique | 10 digits, zero-padded (checked) |
+| ticker | text, unique | |
 | name | text | |
-| sic_code | text | |
-| sector_profile | text | `retail` in v1; the crash-test company gets its own value |
-| fiscal_year_end | text | MM-DD |
-| created_at | timestamptz | |
+| sic_code | text | SEC industry code |
+| sector_profile | text | which metric profile to use; `retail` in v1 |
+| fiscal_year_end | text | MM-DD (checked) |
+| created_at, updated_at | timestamptz | `updated_at` kept current by a trigger |
 
-### filings
+### filings *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| company_id | bigint → companies | |
-| accession_no | text, unique | |
-| form | text | `10-K` |
-| fiscal_year | int | |
+| id | bigint identity, PK | |
+| company_id | bigint → companies | cascade delete |
+| accession_no | text, unique | `0000000000-00-000000` format (checked) |
+| form | text | `10-K` in v1 |
+| fiscal_year | int | see Conventions |
 | period_end | date | |
 | filed_at | date | |
-| primary_doc_url | text | |
-| storage_path | text | raw HTML in the `raw-filings` bucket |
-| status | text | `pending`, `downloaded`, `parsed`, `embedded`, `failed` |
+| primary_document | text | e.g. `wmt-20260131.htm`; URL built by `filingDocumentUrl()` |
+| storage_path | text | raw HTML in the `raw-filings` bucket, once downloaded |
+| status | text | `pending`, `downloaded`, `parsed`, `embedded`, `failed` (checked) |
+| created_at, updated_at | timestamptz | |
 
-### financial_facts
+Index on (company_id, fiscal_year).
+
+### financial_facts *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| company_id | bigint → companies | |
+| id | bigint identity, PK | |
+| company_id | bigint → companies | cascade delete |
 | concept | text | e.g. `us-gaap:Revenues` |
-| value | numeric | |
 | unit | text | `USD`, `USD/shares`, `shares` |
-| period_start | date | null for point-in-time values |
+| value | numeric | |
+| period_start | date | null for point-in-time values (balance sheet) |
 | period_end | date | |
-| fiscal_year | int | |
-| fiscal_period | text | `FY` in v1 |
-| accession_no | text | filing that reported it |
+| fiscal_year | int | see Conventions |
+| accession_no | text | filing that supplied the value kept (not a foreign key: may be outside the ingestion window) |
+| filed_at | date | |
+| form | text | |
 
-Unique on (company_id, concept, unit, period_start, period_end, fiscal_period) to prevent duplicates.
+Unique on (company_id, concept, unit, period_start, period_end) with `NULLS NOT DISTINCT`, so point-in-time facts can't be duplicated. When several filings report the same period, the most recently filed value is kept (restatements win). Indexes on (company_id, fiscal_year) and (company_id, concept).
 
-### ratios
+### ratios *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| company_id | bigint → companies | |
+| id | bigint identity, PK | |
+| company_id | bigint → companies | cascade delete |
 | fiscal_year | int | |
 | metric | text | e.g. `gross_margin` |
-| value | numeric | null when not applicable |
-| status | text | `ok` or `not_applicable` |
-| reason | text | why it's not applicable |
+| status | text | `ok` or `not_applicable` (checked) |
+| value | numeric | required when `ok`, null when `not_applicable` (checked) |
+| reason | text | required when `not_applicable` (checked) |
 | inputs | jsonb | the facts used, for traceability |
+| profile | text | sector profile that produced it |
+| computed_at | timestamptz | |
 
-### red_flags
+Unique on (company_id, fiscal_year, metric).
+
+### red_flags *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| company_id | bigint → companies | |
+| id | bigint identity, PK | |
+| company_id | bigint → companies | cascade delete |
 | fiscal_year | int | |
 | rule | text | e.g. `receivables_outpace_revenue` |
 | detail | text | e.g. "AR +19% vs revenue +5%" |
-| values | jsonb | numbers that triggered it |
+| evidence | jsonb | numbers that triggered it (renamed from `values`, a reserved SQL word) |
+| detected_at | timestamptz | |
+
+Unique on (company_id, fiscal_year, rule).
 
 ### sections
 | Column | Type | Notes |
@@ -106,16 +123,20 @@ Indexes: vector index on `embedding`, GIN index on `search_text`, index on (comp
 | old_text, new_text | text | for reworded risks |
 | chunk_id | bigint → chunks | source passage |
 
-### ingestion_runs
+### ingestion_runs *(built, private)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| company_id | bigint → companies | |
-| started_at, finished_at | timestamptz | |
-| status | text | `running`, `success`, `failed` |
+| id | bigint identity, PK | |
+| company_id | bigint → companies | null if the run failed before the company was found |
+| ticker | text | as requested |
+| params | jsonb | e.g. `{"from": 2023, "to": 2025}` |
+| status | text | `running`, `success`, `failed` (checked) |
 | step | text | last step reached |
-| counts | jsonb | filings, facts, chunks… |
+| counts | jsonb | filings, facts, ratios… |
 | error | text | |
+| started_at, finished_at | timestamptz | |
+
+No read policy: not visible to the browser key.
 
 ### answers
 | Column | Type | Notes |

@@ -65,3 +65,19 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
   - Chunks + embeddings (estimate, to be measured in milestones 2–3): ~3–4 MB per 10-K → ~75 MB for 3 years, ~180 MB for 7 years. Total database for a 7-year window ≈ 200 MB.
   - If space gets tight: store embeddings as `halfvec` (half the size), or skip Item 8 tables (already planned).
 - **Alternatives:** fixed last 3 years (simpler, but no user choice); loading years on demand (out of scope for v1).
+
+## 2026-11-24: Fiscal year = the calendar year most of its months fall in
+- **Decision:** a fiscal year ending 2026-01-31 is labeled 2025; one ending 2026-08-30 is 2026; one ending 2025-11-28 is 2025. Derived from period dates; the UI also shows "FY ending Jan 31, 2026."
+- **Why:** matches 6 of the 7 test-set companies' own labels (all but Walmart) and the SEC's calendar-year "frames," and gives the same period the same label across companies, so a year range compares like with like.
+- **Verified:** the SEC's `fy` field can't be used. Walmart's 10-K filed 2026-03-13 reports revenue for periods ending Jan 2024, 2025 and 2026, all with `fy=2026`; the period ending 2024-01-31 appears in three filings (`fy` 2024, 2025, 2026).
+- **Alternatives:** the year the period ends (matches Walmart only, and mislabels a year ending in early January).
+
+## 2026-11-24: Keep the latest reported value when filings repeat a number
+- **Decision:** `financial_facts` holds one row per company, concept, unit and period; when several 10-Ks report it, the most recently filed value wins, with its accession number and filing date.
+- **Why:** later 10-Ks restate (correct) earlier numbers; using the latest puts every year on the same basis, as a 10-K's own comparison tables do.
+- **Alternatives:** as originally reported (shows what investors saw at the time, but restated years can be on different bases).
+
+## 2026-11-24: Row-level security on every table; public data is read-only for the browser key
+- **Decision:** RLS on all tables. `companies`, `filings`, `financial_facts`, `ratios`, `red_flags` get a SELECT-only policy and grant for `anon`/`authenticated`; `ingestion_runs` gets none. Only the secret key (server and scripts) writes.
+- **Why:** Supabase exposes tables over a REST API to anyone holding the publishable key, which ships to the browser. The data is public SEC data, so reading is fine; writing must never be. Verified over REST: reads return 200; insert, delete and reading `ingestion_runs` return "permission denied."
+- **Alternatives:** no public access, with every read going through Next.js server routes (tighter, more code for public data).
