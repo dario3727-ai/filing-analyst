@@ -12,9 +12,11 @@
     "test:watch": "vitest",
     "db:migrate": "supabase db push --remote",
     "db:new": "supabase migration new",
-    "check:env": "node --env-file-if-exists=.env.local scripts/check-env.ts"
+    "check:env": "node --env-file-if-exists=.env.local scripts/check-env.ts",
+    "ingest": "node --env-file-if-exists=.env.local scripts/ingest.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.2",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"

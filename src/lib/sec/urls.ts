@@ -16,6 +16,21 @@ export function submissionsUrl(cik: string | number): string {
   return `https://data.sec.gov/submissions/CIK${padCik(cik)}.json`;
 }
 
+/**
+ * An older page of a company's filing list. The submissions file only holds
+ * about the last 1,000 filings; earlier ones are in pages named like
+ * CIK0000104169-submissions-001.json (listed in filings.files).
+ */
+export function submissionsPageUrl(pageName: string): string {
+  if (!/^CIK\d{10}-submissions-\d{3}\.json$/.test(pageName)) {
+    throw new Error(`Invalid submissions page name "${pageName}"`);
+  }
+  return `https://data.sec.gov/submissions/${pageName}`;
+}
+
+/** Ticker → CIK lookup table for every SEC-registered company. */
+export const COMPANY_TICKERS_URL = "https://www.sec.gov/files/company_tickers.json";
+
 /** Every XBRL-tagged fact the company has reported, all years. */
 export function companyFactsUrl(cik: string | number): string {
   return `https://data.sec.gov/api/xbrl/companyfacts/CIK${padCik(cik)}.json`;

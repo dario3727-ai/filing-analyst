@@ -15,7 +15,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] Choose the test set (see below) and record it in `docs/decisions.md`
 - [x] SEC client: User-Agent, rate limiter (≤8 req/s), retries, tests
 - [x] Migrations for `companies`, `filings`, `financial_facts`, `ratios`, `red_flags`, `ingestion_runs`
-- [ ] Submissions → `companies` and `filings`
+- [x] Submissions → `companies` and `filings`
 - [ ] Company facts → `financial_facts`, with deduplication verified on real data
 - [ ] Retail sector profile: metrics, formulas, XBRL tag fallbacks
 - [ ] Ratio engine with "not applicable" handling, plus tests

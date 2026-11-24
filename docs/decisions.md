@@ -81,3 +81,13 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 - **Decision:** RLS on all tables. `companies`, `filings`, `financial_facts`, `ratios`, `red_flags` get a SELECT-only policy and grant for `anon`/`authenticated`; `ingestion_runs` gets none. Only the secret key (server and scripts) writes.
 - **Why:** Supabase exposes tables over a REST API to anyone holding the publishable key, which ships to the browser. The data is public SEC data, so reading is fine; writing must never be. Verified over REST: reads return 200; insert, delete and reading `ingestion_runs` return "permission denied."
 - **Alternatives:** no public access, with every read going through Next.js server routes (tighter, more code for public data).
+
+## 2026-11-24: supabase-js behind a small store interface
+- **Decision:** `@supabase/supabase-js` for database access. Ingest code talks to an `IngestStore` interface (start/update run, upsert company, upsert filings); `supabase-store.ts` implements it with the secret key, and tests use an in-memory fake.
+- **Why:** official client, same REST API and RLS we tested, reused by the frontend later. The interface keeps pipeline logic testable without a database, like the fake clock and fake fetch.
+- **Details:** upserts key on `cik` and `accession_no`, and never send `status` or `storage_path`, so re-running submissions can't undo later steps. Each run is logged in `ingestion_runs`, failed runs included.
+- **Alternatives:** hand-written fetch calls to the REST API (no dependency, but rebuilding what the client does).
+
+## 2026-11-24: Non-retail companies get the "unprofiled" sector profile for now
+- **Decision:** SIC 5200–5999 (retail trade) → `retail`; anything else, like Adobe (7372) → `unprofiled`.
+- **Why:** v1 only has a retail profile; the label makes the crash-test case explicit. How the ratio engine treats `unprofiled` is decided in the profile task.
