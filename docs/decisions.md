@@ -174,3 +174,11 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 ## 2026-11-24: Non-retail companies get the "unprofiled" sector profile for now
 - **Decision:** SIC 5200–5999 (retail trade) → `retail`; anything else, like Adobe (7372) → `unprofiled`.
 - **Why:** v1 only has a retail profile; the label makes the crash-test case explicit. How the ratio engine treats `unprofiled` is decided in the profile task.
+
+## 2026-11-24: Bare-bones frontend before milestone 3
+- **Decision:** build an unstyled frontend now (the app is called "Filer" on screen), before search and Q&A: a landing page ("Filer", a company search box, a year-range slider) and a results page that lists everything the pipeline produces for the chosen company and years. Visual design (the mockup) comes later, in milestone 4.
+- **Why:** frontend work takes many small rounds of "do I like this?", so starting early spreads it out. A plain page also shows exactly which features exist today, and which numbers clutter the screen or are missing, before any design effort goes into them.
+- **Search reads, it doesn't fetch:** pressing Enter only reads rows that `npm run ingest` already wrote (no SEC or AI calls), so the page is fast and costs nothing. Loading new companies on demand stays out of scope for v1.
+- **Year slider:** two handles over the company's downloaded 10-K years only. If the downloaded years have a gap (e.g. 2020, 2021, 2023), the slider covers only the latest unbroken run, so a range with a missing year can't be picked.
+- **Data access:** pages read Supabase on the server with the publishable (read-only) key; the secret key is never used by the web app.
+- **Alternatives:** keeping the original order (frontend after Q&A); building the full milestone 4 design first.

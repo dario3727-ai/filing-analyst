@@ -37,6 +37,13 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - **Done when:** coverage is 100% for the retail test set, or each failure is explained.
 - **Milestone 2 completed 2026-11-24:** `npm run coverage` shows all five sections in 21 of 21 parsed 10-Ks (fiscal 2023–2025, all seven companies, crash test included): 105 sections, 4,874 passages.
 
+## Milestone 2.5: bare-bones frontend (added 2026-11-24)
+Unstyled on purpose: shows which features exist and which numbers clutter or are missing, before design work. See decisions 2026-11-24.
+- [x] Landing page: "Filer", company search (preloaded companies only), year-range slider over downloaded years with no gaps
+- [x] Results page: company details, key financials, ratios with notes and "not applicable" reasons, red flags with evidence, filings and sections, placeholders for Ask and What changed
+- **Done when:** searching any test-set company shows its stored data for the chosen years.
+- **Milestone 2.5 completed 2026-11-24:** checked in the browser for Walmart, Kroger (missing inventory, notes) and Adobe (crash test); unknown tickers show a 404.
+
 ## Milestone 3: search and Q&A (week 5)
 - [ ] Voyage embeddings for all chunks, in batches
 - [ ] Hybrid search as a Postgres function (vector + full-text), filtered by company
@@ -47,9 +54,8 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - **Done when:** 10 hand-written questions return correct, cited answers.
 
 ## Milestone 4: frontend (week 6)
-- [ ] Company list and search (preloaded companies only)
-- [ ] Year-range picker, limited to the fiscal years loaded for that company; all three screens filter by it
-- [ ] Overview: key metrics, revenue chart for the selected years, ratio table, red flags
+- [ ] Design pass over the milestone 2.5 pages: company search and year picker styled from the mockup
+- [ ] Overview: key metrics, revenue chart for the selected years, ratio table, red flags (styled; data already wired in 2.5)
 - [ ] Ask: question box, answer with numbered citations, source panel
 - [ ] What changed: placeholder until milestone 5 fills it
 - [ ] Layout works on a phone
