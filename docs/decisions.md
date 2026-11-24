@@ -150,6 +150,14 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Result on the seven fixtures:** 1,598 passages (167–291 per 10-K, ~4,800 for 21 filings); median 120–273 tokens per section; nothing over 450; every kept paragraph appears intact in the passages (tested).
 - **Alternatives:** ~500 tokens with 50-token overlap (broader citations, repeated text); keeping all tables (noisy number-only passages duplicating XBRL); skipping all tables (loses MD&A tables).
 
+## 2026-11-24: sections and chunks tables; ingest step 6 fills them
+- **Schema:** `chunks` stores a page range, heading, kind, word and token counts; copies `company_id`, `fiscal_year` and `item` so search filters on one table; `search_text` is generated from heading + content with English stemming. Unique (filing, item) and (section, chunk_index); RLS read-only for the browser key. `embedding vector(1024)` stays empty until milestone 3, with `embedding_model` required whenever it's set.
+- **Vector index deferred** to milestone 3, when the distance measure (and possibly half-size vectors) is chosen.
+- **Stemming caveat (seen in the test):** "competitive" and "competition" share a stem; "competitors" doesn't. Keyword search alone misses some variants, one reason search will combine keywords with embeddings.
+- **Step 6 (parse):** for each downloaded 10-K in the window not yet parsed (or all with `--reparse`), read it from Storage, parse and chunk it, replace its sections and chunks, then mark it parsed; missing items are warnings, not failures.
+- **Result:** all 21 stored 10-Ks (fiscal 2023–2025) parsed with all five items, including the 14 the parser was never developed against; 105 sections, 4,874 passages (262 tables), average 198 tokens, 15 MB; database 46 MB.
+- **Alternatives:** joining to `filings` for the year at search time; creating a cosine HNSW index now.
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.

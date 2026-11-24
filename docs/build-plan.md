@@ -31,7 +31,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] Save a few real filings as test fixtures
 - [x] Section parser: find Items 1, 1A, 7, 7A, 8; skip the table of contents
 - [x] Chunker: passages of a few hundred tokens with page and section metadata
-- [ ] Migrations for `sections` and `chunks`
+- [x] Migrations for `sections` and `chunks`
 - [ ] Parser tests for every test-set company
 - [ ] Coverage report: share of filings where all key sections were found
 - **Done when:** coverage is 100% for the retail test set, or each failure is explained.

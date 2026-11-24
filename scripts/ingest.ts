@@ -11,7 +11,10 @@ try {
   const store = createSupabaseStoreFromEnv(process.env);
 
   console.log(`Ingesting ${args.ticker}, fiscal years ${args.fromYear}–${args.toYear}...`);
-  const { runId, submissions: s, facts: f, ratios: r, redFlags: rf, documents: d } = await runIngest(args, { sec, store });
+  const { runId, submissions: s, facts: f, ratios: r, redFlags: rf, documents: d, parse: p } = await runIngest(args, {
+    sec,
+    store,
+  });
 
   console.log(`  company: ${s.name} (CIK ${s.cik}), profile: ${s.sectorProfile}`);
   for (const t of s.tenKs) {
@@ -41,7 +44,10 @@ try {
     `  documents: ${d.downloaded} downloaded (${(d.bytesDownloaded / 1e6).toFixed(1)} MB), ` +
       `${d.alreadySaved} already saved, ${d.repaired} recorded from Storage`,
   );
-  for (const w of s.warnings) console.log(`  warning: ${w}`);
+  console.log(
+    `  text: ${p.parsed} filing(s) parsed into ${p.sections} sections and ${p.chunks} passages; ${p.skipped} already parsed`,
+  );
+  for (const w of [...s.warnings, ...p.warnings]) console.log(`  warning: ${w}`);
   console.log(`Done. Run #${runId}, ${sec.requestCount} SEC requests.`);
 } catch (error) {
   console.error(`Ingest failed: ${error instanceof Error ? error.message : String(error)}`);

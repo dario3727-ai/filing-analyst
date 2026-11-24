@@ -60,11 +60,34 @@ export interface RedFlagRow {
 
 /** A filings row as stored, for steps that work on documents. */
 export interface StoredFiling {
+  id: number;
   accession_no: string;
   fiscal_year: number;
   primary_document: string;
   storage_path: string | null;
   status: string;
+}
+
+/** A passage to store (ids are filled in by the store). */
+export interface ChunkRow {
+  chunk_index: number;
+  heading: string | null;
+  kind: "text" | "table";
+  page_start: number;
+  page_end: number;
+  content: string;
+  word_count: number;
+  token_count: number;
+}
+
+/** A parsed section and its passages. */
+export interface SectionWithChunks {
+  item: string;
+  title: string;
+  page_start: number;
+  page_end: number;
+  word_count: number;
+  chunks: ChunkRow[];
 }
 
 export type RunStatus = "running" | "success" | "failed";
@@ -104,4 +127,17 @@ export interface IngestStore {
   uploadDocument(path: string, bytes: Uint8Array): Promise<"uploaded" | "exists">;
   /** Records where a filing's document is stored and sets status to downloaded. */
   markDownloaded(accessionNo: string, storagePath: string): Promise<void>;
+  /** Reads a stored document's bytes. */
+  downloadDocument(path: string): Promise<Uint8Array>;
+
+  // --- parsed text ---
+  /**
+   * Replaces a filing's sections and chunks (deleting the old ones first) and
+   * returns how many chunks were written. Does not change the filing's status.
+   */
+  replaceFilingText(
+    filing: { id: number; company_id: number; fiscal_year: number },
+    sections: readonly SectionWithChunks[],
+  ): Promise<number>;
+  markParsed(filingId: number): Promise<void>;
 }

@@ -2,11 +2,12 @@
  * One ingest run for one company, logged in ingestion_runs from start to
  * finish, including failures. `step` records the last step completed, so a
  * failed run shows how far it got.
- * Steps: submissions → company facts → ratios → red flags → documents.
+ * Steps: submissions → company facts → ratios → red flags → documents → parse.
  */
 import type { SecClient } from "../sec/client.ts";
 import type { IngestArgs } from "./args.ts";
 import { ingestDocuments, type DocumentsStepResult } from "./documents-step.ts";
+import { ingestParse, type ParseStepResult } from "./parse-step.ts";
 import { ingestCompanyFacts, type FactsStepResult } from "./facts-step.ts";
 import { ingestRatios, type RatiosStepResult } from "./ratios-step.ts";
 import { ingestRedFlags, type RedFlagsStepResult } from "./red-flags-step.ts";
@@ -27,6 +28,7 @@ export interface IngestResult {
   ratios: RatiosStepResult;
   redFlags: RedFlagsStepResult;
   documents: DocumentsStepResult;
+  parse: ParseStepResult;
 }
 
 export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<IngestResult> {
@@ -70,14 +72,22 @@ export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<Ing
     counts.documents_already_saved = documents.alreadySaved;
     counts.documents_repaired = documents.repaired;
     counts.sec_requests = sec.requestCount;
+    await store.updateRun(runId, { step: "documents", counts });
+
+    const parse = await ingestParse(store, submissions.companyId, submissions.tenKs, { reparse: args.reparse ?? false });
+    counts.filings_parsed = parse.parsed;
+    counts.filings_already_parsed = parse.skipped;
+    counts.sections = parse.sections;
+    counts.chunks = parse.chunks;
+    const warnings = [...submissions.warnings, ...parse.warnings];
     await store.updateRun(runId, {
-      step: "documents",
+      step: "parse",
       counts,
       status: "success",
       finished_at: now(),
-      ...(submissions.warnings.length > 0 ? { error: `Warnings: ${submissions.warnings.join("; ")}` } : {}),
+      ...(warnings.length > 0 ? { error: `Warnings: ${warnings.join("; ")}` } : {}),
     });
-    return { runId, submissions, facts, ratios, redFlags, documents };
+    return { runId, submissions, facts, ratios, redFlags, documents, parse };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     counts.sec_requests = sec.requestCount;

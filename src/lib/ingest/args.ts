@@ -8,12 +8,14 @@ export interface IngestArgs {
   ticker: string;
   fromYear: number;
   toYear: number;
+  /** Parse already-parsed filings again (after a parser change). */
+  reparse?: boolean;
 }
 
 /** XBRL financial data on EDGAR starts around 2009. */
 export const EARLIEST_YEAR = 2009;
 
-export const USAGE = "Usage: npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>";
+export const USAGE = "Usage: npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR> [--reparse]";
 
 function year(value: string | undefined, flag: string, latest: number): number {
   if (value === undefined) throw new Error(`Missing --${flag}. ${USAGE}`);
@@ -27,11 +29,16 @@ function year(value: string | undefined, flag: string, latest: number): number {
 
 /** `currentYear` is passed in (not read from the clock) so tests are stable. */
 export function parseIngestArgs(argv: readonly string[], currentYear: number): IngestArgs {
-  let values: { ticker?: string; from?: string; to?: string };
+  let values: { ticker?: string; from?: string; to?: string; reparse?: boolean };
   try {
     ({ values } = parseArgs({
       args: [...argv],
-      options: { ticker: { type: "string" }, from: { type: "string" }, to: { type: "string" } },
+      options: {
+        ticker: { type: "string" },
+        from: { type: "string" },
+        to: { type: "string" },
+        reparse: { type: "boolean" },
+      },
       strict: true,
       allowPositionals: false,
     }));
@@ -47,5 +54,5 @@ export function parseIngestArgs(argv: readonly string[], currentYear: number): I
   const toYear = year(values.to, "to", currentYear);
   if (fromYear > toYear) throw new Error(`--from ${fromYear} is after --to ${toYear}`);
 
-  return { ticker, fromYear, toYear };
+  return { ticker, fromYear, toYear, reparse: values.reparse ?? false };
 }

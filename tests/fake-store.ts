@@ -6,6 +6,7 @@ import type {
   RatioRow,
   RedFlagRow,
   RunUpdate,
+  SectionWithChunks,
   StoredFiling,
 } from "@/lib/ingest/store";
 
@@ -14,6 +15,8 @@ export function createFakeStore(): IngestStore & {
   companies: Map<string, CompanyRow & { id: number }>;
   filings: Map<string, FilingRow & { storage_path?: string | null; status?: string }>;
   documents: Map<string, Uint8Array>;
+  /** Parsed text by filing id. */
+  filingText: Map<number, SectionWithChunks[]>;
   facts: Map<string, FactRow>;
   ratios: Map<string, RatioRow>;
   redFlags: RedFlagRow[];
@@ -23,6 +26,13 @@ export function createFakeStore(): IngestStore & {
   const companies = new Map<string, CompanyRow & { id: number }>();
   const filings = new Map<string, FilingRow & { storage_path?: string | null; status?: string }>();
   const documents = new Map<string, Uint8Array>();
+  const filingText = new Map<number, SectionWithChunks[]>();
+  // Stable fake ids for filings, by accession number.
+  const filingIds = new Map<string, number>();
+  const idFor = (accession: string) => {
+    if (!filingIds.has(accession)) filingIds.set(accession, filingIds.size + 1);
+    return filingIds.get(accession) ?? 0;
+  };
   const facts = new Map<string, FactRow>();
   const ratios = new Map<string, RatioRow>();
   const runs = new Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>();
@@ -33,6 +43,7 @@ export function createFakeStore(): IngestStore & {
     companies,
     filings,
     documents,
+    filingText,
     facts,
     ratios,
     get redFlags() {
@@ -78,6 +89,7 @@ export function createFakeStore(): IngestStore & {
         .filter((f) => f.company_id === companyId)
         .map(
           (f): StoredFiling => ({
+            id: idFor(f.accession_no),
             accession_no: f.accession_no,
             fiscal_year: f.fiscal_year,
             primary_document: f.primary_document,
@@ -97,6 +109,20 @@ export function createFakeStore(): IngestStore & {
     async markDownloaded(accessionNo, storagePath) {
       const f = filings.get(accessionNo);
       if (f) filings.set(accessionNo, { ...f, storage_path: storagePath, status: "downloaded" });
+    },
+    async downloadDocument(path) {
+      const bytes = documents.get(path);
+      if (!bytes) throw new Error(`no document at ${path}`);
+      return bytes;
+    },
+    async replaceFilingText(filing, sections) {
+      filingText.set(filing.id, sections.map((s) => ({ ...s, chunks: [...s.chunks] })));
+      return sections.reduce((n, s) => n + s.chunks.length, 0);
+    },
+    async markParsed(filingId) {
+      for (const [accession, f] of filings) {
+        if (idFor(accession) === filingId) filings.set(accession, { ...f, status: "parsed" });
+      }
     },
   };
 }

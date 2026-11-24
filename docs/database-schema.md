@@ -85,31 +85,40 @@ Unique on (company_id, fiscal_year, metric).
 
 Unique on (company_id, fiscal_year, rule).
 
-### sections
+### sections *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| filing_id | bigint → filings | |
-| item | text | `1`, `1A`, `7`, `8`… |
-| title | text | |
-| page_start, page_end | int | |
+| id | bigint identity, PK | |
+| filing_id | bigint → filings | cascade delete |
+| item | text | `1`, `1A`, `7`, `7A`, `8` (checked) |
+| title | text | e.g. "Risk Factors" |
+| page_start, page_end | int | counted from page breaks (cover = 1) |
 | word_count | int | |
+| created_at | timestamptz | |
 
-### chunks
+Unique on (filing_id, item). Re-parsing a filing deletes and re-inserts its sections (and, by cascade, its chunks).
+
+### chunks *(built)*
 | Column | Type | Notes |
 | --- | --- | --- |
-| id | bigint, PK | |
-| section_id | bigint → sections | |
+| id | bigint identity, PK | |
+| section_id | bigint → sections | cascade delete |
 | filing_id | bigint → filings | copied for fast filtering |
 | company_id | bigint → companies | copied for fast filtering |
+| fiscal_year | int | copied from the filing, for year-range search |
+| item | text | copied from the section, to search within one item |
 | chunk_index | int | order within the section |
-| page | int | |
-| content | text | |
-| token_count | int | |
-| embedding | vector(1024) | Voyage |
-| search_text | tsvector | generated from content, for keyword search |
+| heading | text | nearest subheading, if any |
+| kind | text | `text` or `table` (checked) |
+| page_start, page_end | int | |
+| content | text | the passage (~300 tokens, max 450) |
+| word_count, token_count | int | token count is an estimate (≈ 1.33 per word) |
+| embedding | vector(1024) | Voyage; empty until milestone 3 |
+| embedding_model | text | required whenever `embedding` is set (checked) |
+| search_text | tsvector | generated from heading + content, English stemming |
+| created_at | timestamptz | |
 
-Indexes: vector index on `embedding`, GIN index on `search_text`, index on (company_id, filing_id).
+Unique on (section_id, chunk_index). Indexes: (company_id, fiscal_year), (filing_id), GIN on `search_text`. The vector index on `embedding` is added in milestone 3, once the distance measure is chosen.
 
 ### risk_changes
 | Column | Type | Notes |

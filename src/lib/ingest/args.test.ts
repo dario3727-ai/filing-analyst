@@ -9,6 +9,7 @@ describe("parseIngestArgs", () => {
       ticker: "WMT",
       fromYear: 2023,
       toYear: 2025,
+      reparse: false,
     });
   });
 
@@ -17,7 +18,12 @@ describe("parseIngestArgs", () => {
       ticker: "COST",
       fromYear: 2025,
       toYear: 2025,
+      reparse: false,
     });
+  });
+
+  it("reads --reparse", () => {
+    expect(parseIngestArgs(["--ticker", "WMT", "--from", "2025", "--to", "2025", "--reparse"], YEAR).reparse).toBe(true);
   });
 
   it.each([

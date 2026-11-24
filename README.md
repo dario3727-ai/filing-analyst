@@ -119,6 +119,7 @@ What `npm run ingest` does for one company, logged in `ingestion_runs`:
 3. **Ratios:** 12 retail metrics per fiscal year, with stock-split adjustment, 53-week notes and "not applicable" reasons → `ratios`.
 4. **Red flags:** five calibrated rules → `red_flags`.
 5. **Documents:** each 10-K in the window, saved once as raw HTML to the `raw-filings` bucket (`{TICKER}/{fiscal_year}.htm`); later runs skip it.
+6. **Parse:** Items 1, 1A, 7, 7A and 8 found in each saved 10-K and cut into ~300-token passages → `sections`, `chunks`. Already-parsed filings are skipped; add `--reparse` after a parser change.
 
 ## Known limitations
 

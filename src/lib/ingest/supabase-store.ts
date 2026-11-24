@@ -102,11 +102,12 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
     async getFilings(companyId: number) {
       const { data, error } = await client
         .from("filings")
-        .select("accession_no, fiscal_year, primary_document, storage_path, status")
+        .select("id, accession_no, fiscal_year, primary_document, storage_path, status")
         .eq("company_id", companyId);
       if (error) fail("get filings", error.message);
       return (data ?? []).map(
         (r): StoredFiling => ({
+          id: Number(r.id),
           accession_no: String(r.accession_no),
           fiscal_year: Number(r.fiscal_year),
           primary_document: String(r.primary_document),
@@ -142,6 +143,59 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
         .update({ storage_path: storagePath, status: "downloaded" })
         .eq("accession_no", accessionNo);
       if (error) fail("mark filing downloaded", error.message);
+    },
+
+    async downloadDocument(path: string) {
+      const { data, error } = await client.storage.from(RAW_FILINGS_BUCKET).download(path);
+      if (error || !data) fail(`download ${path}`, error?.message ?? "no data");
+      return new Uint8Array(await data.arrayBuffer());
+    },
+
+    async replaceFilingText(filing, sections) {
+      // Deleting the sections deletes their chunks too (on delete cascade).
+      const { error: deleteError } = await client.from("sections").delete().eq("filing_id", filing.id);
+      if (deleteError) fail("delete sections", deleteError.message);
+      if (sections.length === 0) return 0;
+
+      const { data: inserted, error: sectionError } = await client
+        .from("sections")
+        .insert(
+          sections.map((s) => ({
+            filing_id: filing.id,
+            item: s.item,
+            title: s.title,
+            page_start: s.page_start,
+            page_end: s.page_end,
+            word_count: s.word_count,
+          })),
+        )
+        .select("id, item");
+      if (sectionError) fail("insert sections", sectionError.message);
+      const sectionIds = new Map((inserted ?? []).map((r) => [String(r.item), Number(r.id)]));
+
+      const rows = sections.flatMap((s) =>
+        s.chunks.map((c) => ({
+          ...c,
+          section_id: sectionIds.get(s.item),
+          filing_id: filing.id,
+          company_id: filing.company_id,
+          fiscal_year: filing.fiscal_year,
+          item: s.item,
+        })),
+      );
+      let written = 0;
+      for (let i = 0; i < rows.length; i += FACT_BATCH_SIZE) {
+        const batch = rows.slice(i, i + FACT_BATCH_SIZE);
+        const { error, count } = await client.from("chunks").insert(batch, { count: "exact" });
+        if (error) fail(`insert chunks (rows ${i + 1}–${i + batch.length})`, error.message);
+        written += count ?? batch.length;
+      }
+      return written;
+    },
+
+    async markParsed(filingId: number) {
+      const { error } = await client.from("filings").update({ status: "parsed" }).eq("id", filingId);
+      if (error) fail("mark filing parsed", error.message);
     },
   };
 }

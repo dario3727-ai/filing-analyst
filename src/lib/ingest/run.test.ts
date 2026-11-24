@@ -82,7 +82,7 @@ describe("runIngest on real Walmart data", () => {
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "documents",
+      step: "parse",
       company_id: result.submissions.companyId,
       counts: {
         filings: 3,
@@ -93,9 +93,12 @@ describe("runIngest on real Walmart data", () => {
         ratios: result.ratios.stored,
         red_flags: result.redFlags.stored,
         documents_downloaded: 3,
+        filings_parsed: 3,
       },
       finished_at: "T",
     });
+    // The stand-in documents have no Item headings: the run warns rather than fails.
+    expect(result.parse.warnings).toContain("FY2025: Item 1, Item 1A, Item 7, Item 7A, Item 8 not found");
   });
 
   it("is safe to run twice: same rows, same company id", async () => {
