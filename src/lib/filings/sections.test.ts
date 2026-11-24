@@ -10,9 +10,9 @@ function toBlocks(lines: string[]): Block[] {
     const m = /^@(\d+) (.*)$/.exec(line);
     if (m) {
       page = Number(m[1]);
-      return [{ text: m[2] ?? "", page }];
+      return [{ text: m[2] ?? "", page, kind: "text" as const }];
     }
-    return [{ text: line, page }];
+    return [{ text: line, page, kind: "text" as const }];
   });
 }
 

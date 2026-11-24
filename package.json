@@ -18,7 +18,8 @@
     "ingest:test-set": "node --env-file-if-exists=.env.local scripts/ingest-test-set.ts",
     "fixtures:save": "node --env-file-if-exists=.env.local scripts/save-fixtures.ts",
     "inspect:headings": "node scripts/inspect-headings.ts",
-    "inspect:sections": "node scripts/inspect-sections.ts"
+    "inspect:sections": "node scripts/inspect-sections.ts",
+    "inspect:chunks": "node scripts/inspect-chunks.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

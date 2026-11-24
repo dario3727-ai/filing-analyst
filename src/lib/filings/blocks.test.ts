@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeFiling, htmlToBlocks } from "@/lib/filings/blocks";
+import { decodeFiling, htmlToBlocks, removePageFurniture } from "@/lib/filings/blocks";
 
 const blocks = (html: string) => htmlToBlocks(html).map((b) => b.text);
 
@@ -22,6 +22,37 @@ describe("htmlToBlocks", () => {
     expect(blocks(html)).toEqual(["Item 1A. Risk Factors", "Item 7. MD&A"]);
   });
 
+  it("marks rows of a data table as 'table'", () => {
+    const html = `<p>Intro</p><table>
+      <tr><td></td><td>2025</td><td>2024</td></tr>
+      <tr><td>Net sales</td><td>$ 706,413</td><td>$ 674,538</td></tr>
+      <tr><td>Change</td><td>4.7 %</td><td>(1.2)</td></tr></table><p>After</p>`;
+    expect(htmlToBlocks(html).map((b) => [b.text, b.kind])).toEqual([
+      ["Intro", "text"],
+      ["2025 2024", "table"],
+      ["Net sales $ 706,413 $ 674,538", "table"],
+      ["Change 4.7 % (1.2)", "table"],
+      ["After", "text"],
+    ]);
+  });
+
+  it("keeps a row together when each cell wraps its text in <p> or <div> (Kroger)", () => {
+    const html = `<table>
+      <tr><td><p>Sales</p></td><td><p>$</p></td><td><div>147,123</div></td><td><p>$</p></td><td><div>150,039</div></td></tr>
+      <tr><td><p>Total assets</p></td><td><p>$</p></td><td><div>52,000</div></td><td><p>$</p></td><td><div>49,000</div></td></tr>
+      </table>`;
+    expect(htmlToBlocks(html).map((b) => [b.text, b.kind])).toEqual([
+      ["Sales $ 147,123 $ 150,039", "table"],
+      ["Total assets $ 52,000 $ 49,000", "table"],
+    ]);
+  });
+
+  it("keeps layout tables (bullets beside text) as 'text'", () => {
+    const html = `<table><tr><td>•</td><td>We operate in a highly competitive industry.</td></tr>
+      <tr><td>•</td><td>Our results depend on consumer spending.</td></tr></table>`;
+    expect(htmlToBlocks(html).every((b) => b.kind === "text")).toBe(true);
+  });
+
   it("decodes entities and collapses non-breaking spaces", () => {
     expect(blocks("<p>Walmart&#8217;s&#160;&#160;results&nbsp;improved</p>")).toEqual(["Walmart’s results improved"]);
   });
@@ -37,7 +68,7 @@ describe("htmlToBlocks", () => {
   it("counts pages from CSS page breaks (before and after)", () => {
     const html = `<body><p>Cover</p><hr style="page-break-after:always"/><p>Page two</p>
       <div style="break-before: page">Page three</div></body>`;
-    expect(htmlToBlocks(html)).toEqual([
+    expect(htmlToBlocks(html).map(({ text, page }) => ({ text, page }))).toEqual([
       { text: "Cover", page: 1 },
       { text: "Page two", page: 2 },
       { text: "Page three", page: 3 },
@@ -48,6 +79,30 @@ describe("htmlToBlocks", () => {
     expect(blocks("<head><title>t</title><style>p{}</style></head><body><script>x()</script><p>Text</p></body>")).toEqual([
       "Text",
     ]);
+  });
+});
+
+describe("removePageFurniture", () => {
+  const b = (text: string, page: number) => ({ text, page, kind: "text" as const });
+
+  it("drops bare page numbers and table-of-contents links", () => {
+    expect(removePageFurniture([b("Real text.", 1), b("12", 1), b("F-3", 2), b("Table of Contents", 2)]).map((x) => x.text)).toEqual([
+      "Real text.",
+    ]);
+  });
+
+  it("drops a running header repeated on many pages, but keeps a subheading used a few times", () => {
+    const blocks = Array.from({ length: 30 }, (_, p) => [b("Walmart Inc.", p + 1), b(`Paragraph on page ${p + 1}.`, p + 1)]).flat();
+    blocks.push(b("Overview", 5), b("Overview", 12), b("Overview", 20));
+    const kept = removePageFurniture(blocks).map((x) => x.text);
+    expect(kept).not.toContain("Walmart Inc.");
+    expect(kept.filter((t) => t === "Overview")).toHaveLength(3);
+    expect(kept).toContain("Paragraph on page 7.");
+  });
+
+  it("never drops Item headings or table rows", () => {
+    const blocks = [b("Item 7", 1), { text: "2025 2024", page: 1, kind: "table" as const }];
+    expect(removePageFurniture(blocks)).toHaveLength(2);
   });
 });
 

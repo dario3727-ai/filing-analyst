@@ -10,6 +10,10 @@
  *    row read as one line. <br> also ends a block.
  *  - Pages: start at 1; CSS page-break-before/after (or break-before/after:
  *    page) moves to the next page.
+ *  - Kind: rows of a DATA table are "table"; everything else is "text".
+ *    Filings also use tables for layout (a "•" cell beside a text cell), so
+ *    a table counts as data only if at least 30% of its non-empty cells are
+ *    numbers like "$ 706,413", "(1.2)", "15%" or "—".
  */
 import { ElementType, parseDocument } from "htmlparser2";
 
@@ -26,7 +30,12 @@ const isElement = (node: HtmlNode): node is HtmlElement => "attribs" in node;
 export interface Block {
   text: string;
   page: number;
+  kind: "text" | "table";
 }
+
+/** A cell that holds a number, a placeholder dash, or currency/percent symbols around one. */
+const NUMERIC_CELL = /^[$€£(]*\s*[-–—]?\s*[\d.,]*\d[\d.,]*\s*[)%]*$|^[-–—]+$/;
+export const DATA_TABLE_MIN_NUMERIC_SHARE = 0.3;
 
 export function decodeFiling(bytes: Uint8Array): string {
   try {
@@ -58,10 +67,15 @@ export function htmlToBlocks(html: string): Block[] {
   const blocks: Block[] = [];
   let page = 1;
   let buffer: string[] = [];
+  // One entry per open <table>: where its blocks start and its cell tally.
+  const tables: { startBlock: number; cells: number; numeric: number }[] = [];
+  // Inside a table row, a whole row is one block even when each cell wraps
+  // its text in <p> or <div> (Kroger does this for 97% of its cells).
+  let rowDepth = 0;
 
   const flush = () => {
     const text = normalizeText(buffer.join(""));
-    if (text !== "") blocks.push({ text, page });
+    if (text !== "") blocks.push({ text, page, kind: "text" });
     buffer = [];
   };
 
@@ -78,21 +92,52 @@ export function htmlToBlocks(html: string): Block[] {
     if (HIDDEN.test(style)) return;
 
     if (name === "br") {
-      flush();
+      if (rowDepth > 0) buffer.push(" ");
+      else flush();
       return;
     }
 
-    const isBlock = BLOCK_TAGS.has(name);
+    // Paragraph tags end a block, except inside a table row (the row is the block).
+    const isBlock = BLOCK_TAGS.has(name) && (rowDepth === 0 || name === "tr");
     if (BREAK_BEFORE.test(style)) {
       flush();
       page++;
     }
     if (isBlock) flush();
+    if (name === "table") tables.push({ startBlock: blocks.length, cells: 0, numeric: 0 });
+
+    const isCell = name === "td" || name === "th";
     // Table cells sit side by side in a row: keep a space between them.
-    if (name === "td" || name === "th") buffer.push(" ");
+    if (isCell) buffer.push(" ");
+    const cellStart = buffer.length;
+    if (name === "tr") rowDepth++;
     for (const child of node.children) walk(child);
-    if (name === "td" || name === "th") buffer.push(" ");
+    if (name === "tr") rowDepth--;
+    if (isCell) {
+      const cellText = normalizeText(buffer.slice(cellStart).join(""));
+      const table = tables.at(-1);
+      if (table && cellText !== "") {
+        table.cells++;
+        if (NUMERIC_CELL.test(cellText)) table.numeric++;
+      }
+      buffer.push(" ");
+    }
     if (isBlock) flush();
+
+    if (name === "table") {
+      const table = tables.pop();
+      const parent = tables.at(-1);
+      if (table && parent) {
+        // Nested table: the outermost table decides for all of its rows.
+        parent.cells += table.cells;
+        parent.numeric += table.numeric;
+      } else if (table && table.numeric >= 2 && table.numeric / table.cells >= DATA_TABLE_MIN_NUMERIC_SHARE) {
+        for (let i = table.startBlock; i < blocks.length; i++) {
+          const block = blocks[i];
+          if (block) block.kind = "table";
+        }
+      }
+    }
     if (BREAK_AFTER.test(style)) {
       flush();
       page++;
@@ -101,5 +146,34 @@ export function htmlToBlocks(html: string): Block[] {
 
   for (const child of doc.children) walk(child);
   flush();
-  return blocks;
+  return removePageFurniture(blocks);
+}
+
+const PAGE_NUMBER = /^(page\s*)?[A-Z]?-?\d{1,3}$/i;
+const CONTENTS_LINK = /^(table of contents|index|back to contents)$/i;
+const MAX_RUNNING_HEADER_WORDS = 8;
+
+/**
+ * Drops printing artifacts that aren't content: bare page numbers,
+ * "Table of Contents" links, and running headers (a short line repeated on
+ * many pages, like "Walmart Inc."). A line counts as a running header if it
+ * appears at least 8 times and on at least 20% of the pages, so a repeated
+ * subheading such as "Overview" (a few times) is kept. "Item N" lines are
+ * never dropped.
+ */
+export function removePageFurniture(blocks: readonly Block[]): Block[] {
+  const pages = blocks.at(-1)?.page ?? 1;
+  const counts = new Map<string, number>();
+  for (const b of blocks) {
+    if (b.kind === "text" && b.text.split(" ").length <= MAX_RUNNING_HEADER_WORDS) {
+      counts.set(b.text, (counts.get(b.text) ?? 0) + 1);
+    }
+  }
+  const threshold = Math.max(8, Math.ceil(pages * 0.2));
+  return blocks.filter((b) => {
+    if (b.kind !== "text") return true;
+    if (/^item\s*\d/i.test(b.text)) return true;
+    if (PAGE_NUMBER.test(b.text) || CONTENTS_LINK.test(b.text)) return false;
+    return (counts.get(b.text) ?? 0) < threshold;
+  });
 }

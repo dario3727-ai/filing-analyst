@@ -141,6 +141,15 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Result:** all five target items (1, 1A, 7, 7A, 8) found in all seven fixtures, in order, with correct titles and openings; 26–155 ms per filing.
 - **Page numbers** are counted from page breaks (cover = page 1), so they can differ from the numbers printed in a filing's footer. Revisit in the chunker task if citations should show printed page numbers.
 
+## 2026-11-24: Passages of ~300 tokens; Item 8 tables skipped
+- **Size:** target ~300 tokens, never over 450, no overlap. Built from whole paragraphs, split at sentence ends only when a paragraph is too long (words as a last resort). Token counts are estimates (1.33 per word; Voyage's tokenizer isn't available offline).
+- **Structure:** a subheading (≤ 12 words, no sentence-ending punctuation) starts a new passage and is stored as its `heading`; text and data-table passages are kept apart; any passage under 60 tokens is merged into the next (or previous) one when it fits.
+- **Tables:** a table is "data" if ≥ 30% of its non-empty cells are numeric; otherwise it's layout (bullets) and treated as text. Data-table rows are dropped in Item 8 (XBRL has those numbers exactly; the notes' text is kept) and become their own passages elsewhere (MD&A segment and comparable-sales tables).
+- **Page furniture removed before chunking:** bare page numbers, "Table of Contents" links, and running headers (a short line on ≥ 8 occasions and ≥ 20% of pages, e.g. "Walmart Inc.").
+- **Bugs found on real data and fixed:** cells wrapping their text in `<p>`/`<div>` (Kroger: 97% of cells) split table rows apart and broke data-table detection (Kroger 908 → 269 passages); page numbers and running headers made 110 passages under 20 tokens (now 4, all legitimate small tables or captions).
+- **Result on the seven fixtures:** 1,598 passages (167–291 per 10-K, ~4,800 for 21 filings); median 120–273 tokens per section; nothing over 450; every kept paragraph appears intact in the passages (tested).
+- **Alternatives:** ~500 tokens with 50-token overlap (broader citations, repeated text); keeping all tables (noisy number-only passages duplicating XBRL); skipping all tables (loses MD&A tables).
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.
