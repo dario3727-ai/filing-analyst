@@ -57,11 +57,37 @@ export interface MetricDef {
   compute(v: Readonly<Record<string, number>>): MetricResult;
 }
 
+/** A value a red-flag rule reads: an input or a computed metric, this year or last. */
+export type RuleRef = { input: string; year: YearRef } | { metric: string; year: YearRef };
+
+export type RuleOutcome =
+  | { fired: false }
+  | { fired: true; detail: string; evidence: Record<string, number> };
+
+export interface RedFlagRule {
+  id: string;
+  label: string;
+  /** What the flag means and why it matters, shown in the UI. */
+  description: string;
+  /** The threshold in words, e.g. "inventory growth − revenue growth > 10 points". */
+  threshold: string;
+  requires: readonly RuleRef[];
+  /** Pure check. `v` is keyed like metric values: "<id>" or "<id>@prior". Only called when all exist. */
+  check(v: Readonly<Record<string, number>>): RuleOutcome;
+}
+
 export interface SectorProfile {
   id: string;
   label: string;
   inputs: readonly InputDef[];
   metrics: readonly MetricDef[];
+  redFlags: readonly RedFlagRule[];
+}
+
+/** Key for a rule reference: same "@prior" convention as metric inputs. */
+export function ruleKey(ref: RuleRef): string {
+  const id = "input" in ref ? ref.input : ref.metric;
+  return ref.year === "prior" ? `${id}@prior` : id;
 }
 
 /** Key used in a metric's value map for an input reference. */

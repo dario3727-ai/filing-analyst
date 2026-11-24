@@ -1,12 +1,14 @@
 /**
  * One ingest run for one company, logged in ingestion_runs from start to
  * finish, including failures. `step` records the last step completed, so a
- * failed run shows how far it got. Later tasks add ratios and red flags.
+ * failed run shows how far it got.
+ * Steps: submissions → company facts → ratios → red flags.
  */
 import type { SecClient } from "../sec/client.ts";
 import type { IngestArgs } from "./args.ts";
 import { ingestCompanyFacts, type FactsStepResult } from "./facts-step.ts";
 import { ingestRatios, type RatiosStepResult } from "./ratios-step.ts";
+import { ingestRedFlags, type RedFlagsStepResult } from "./red-flags-step.ts";
 import type { IngestStore } from "./store.ts";
 import { ingestSubmissions, type SubmissionsStepResult } from "./submissions-step.ts";
 
@@ -22,6 +24,7 @@ export interface IngestResult {
   submissions: SubmissionsStepResult;
   facts: FactsStepResult;
   ratios: RatiosStepResult;
+  redFlags: RedFlagsStepResult;
 }
 
 export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<IngestResult> {
@@ -47,14 +50,18 @@ export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<Ing
     counts.ratios = ratios.stored;
     counts.ratios_ok = ratios.ok;
     counts.ratios_not_applicable = ratios.notApplicable;
+    await store.updateRun(runId, { step: "ratios", counts });
+
+    const redFlags = await ingestRedFlags(store, submissions.companyId, ratios.profileUsed, facts.facts, ratios.results);
+    counts.red_flags = redFlags.stored;
     await store.updateRun(runId, {
-      step: "ratios",
+      step: "red_flags",
       counts,
       status: "success",
       finished_at: now(),
       ...(submissions.warnings.length > 0 ? { error: `Warnings: ${submissions.warnings.join("; ")}` } : {}),
     });
-    return { runId, submissions, facts, ratios };
+    return { runId, submissions, facts, ratios, redFlags };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     counts.sec_requests = sec.requestCount;

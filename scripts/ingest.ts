@@ -11,7 +11,7 @@ try {
   const store = createSupabaseStoreFromEnv(process.env);
 
   console.log(`Ingesting ${args.ticker}, fiscal years ${args.fromYear}–${args.toYear}...`);
-  const { runId, submissions: s, facts: f, ratios: r } = await runIngest(args, { sec, store });
+  const { runId, submissions: s, facts: f, ratios: r, redFlags: rf } = await runIngest(args, { sec, store });
 
   console.log(`  company: ${s.name} (CIK ${s.cik}), profile: ${s.sectorProfile}`);
   for (const t of s.tenKs) {
@@ -33,6 +33,10 @@ try {
   );
   const topReasons = Object.entries(r.reasons).sort((a, b) => b[1] - a[1]).slice(0, 4);
   for (const [reason, count] of topReasons) console.log(`    ${count} × ${reason}`);
+  console.log(`  red flags: ${rf.stored}`);
+  for (const flag of rf.flags.filter((x) => x.fiscalYear >= args.fromYear - 2)) {
+    console.log(`    FY${flag.fiscalYear}  ${flag.rule}: ${flag.detail}`);
+  }
   for (const w of s.warnings) console.log(`  warning: ${w}`);
   console.log(`Done. Run #${runId}, ${sec.requestCount} SEC requests.`);
 } catch (error) {

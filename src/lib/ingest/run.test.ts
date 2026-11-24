@@ -79,7 +79,7 @@ describe("runIngest on real Walmart data", () => {
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "ratios",
+      step: "red_flags",
       company_id: result.submissions.companyId,
       counts: {
         filings: 3,
@@ -88,6 +88,7 @@ describe("runIngest on real Walmart data", () => {
         facts_restated: result.facts.stats.restated,
         sec_requests: 3,
         ratios: result.ratios.stored,
+        red_flags: result.redFlags.stored,
       },
       finished_at: "T",
     });
@@ -102,6 +103,7 @@ describe("runIngest on real Walmart data", () => {
     expect(store.companies.size).toBe(1);
     expect(store.filings.size).toBe(3);
     expect(store.facts.size).toBe(factsAfterFirst);
+    expect(store.redFlags.length).toBe(first.redFlags.stored); // replaced, not duplicated
     expect(store.runs.size).toBe(2); // each run is logged
   });
 

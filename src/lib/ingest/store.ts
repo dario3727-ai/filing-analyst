@@ -50,6 +50,14 @@ export interface RatioRow {
   computed_at: string;
 }
 
+export interface RedFlagRow {
+  company_id: number;
+  fiscal_year: number;
+  rule: string;
+  detail: string;
+  evidence: { values: Record<string, number>; notes: string[] };
+}
+
 export type RunStatus = "running" | "success" | "failed";
 
 export interface RunUpdate {
@@ -73,4 +81,9 @@ export interface IngestStore {
   upsertFacts(rows: readonly FactRow[]): Promise<number>;
   /** Inserts or updates by (company, fiscal year, metric); returns how many rows were written. */
   upsertRatios(rows: readonly RatioRow[]): Promise<number>;
+  /**
+   * Replaces all of a company's red flags. Replace, not upsert: a flag that
+   * no longer fires (e.g. after a restatement) must disappear.
+   */
+  replaceRedFlags(companyId: number, rows: readonly RedFlagRow[]): Promise<number>;
 }

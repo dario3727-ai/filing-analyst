@@ -14,7 +14,7 @@
  * Values are fractions (0.245 = 24.5%). Formulas are pure and never divide
  * by zero: a non-positive denominator gives "not applicable" with a reason.
  */
-import type { InputDef, MetricDef, MetricResult, SectorProfile } from "../types.ts";
+import type { InputDef, MetricDef, MetricResult, RedFlagRule, SectorProfile } from "../types.ts";
 
 const usGaap = (name: string, note?: string) => (note ? { tag: `us-gaap:${name}`, note } : { tag: `us-gaap:${name}` });
 
@@ -295,9 +295,134 @@ const metrics: readonly MetricDef[] = [
   },
 ];
 
+// --- red flags ------------------------------------------------------------------
+// Thresholds calibrated on the test set, fiscal 2015–2025 (66 retailer-years;
+// decision 2026-11-24). A receivables rule was considered and left out: most
+// retail sales are paid at the till, so receivables are small and noisy.
+
+const pct = (x: number) => `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)}%`;
+const pts = (x: number) => `${x >= 0 ? "+" : "−"}${Math.abs(x * 100).toFixed(1)} pts`;
+const share = (x: number) => `${x < 0 ? "−" : ""}${Math.abs(x * 100).toFixed(1)}%`;
+
+/** Thresholds as named constants so the docs and tests can refer to them. */
+export const RETAIL_THRESHOLDS = {
+  inventoryGapPoints: 0.1,
+  grossMarginDropPoints: 0.02,
+  operatingMarginDropPoints: 0.02,
+  cashConversionMin: 1.0,
+} as const;
+
+const redFlags: readonly RedFlagRule[] = [
+  {
+    id: "inventory_outpaces_sales",
+    label: "Inventory growing faster than sales",
+    description:
+      "Unsold goods are piling up faster than sales are growing, which often leads to markdowns and lower margins the next year (Target and Walmart fiscal 2021, before Target's 2022 margin drop).",
+    threshold: "inventory growth − revenue growth > 10 points",
+    requires: [
+      { input: "inventory", year: "current" },
+      { input: "inventory", year: "prior" },
+      // The metric rather than raw revenue, so its notes (53-week years) carry over.
+      { metric: "revenue_growth", year: "current" },
+    ],
+    check: (v) => {
+      const invPrior = get(v, "inventory@prior");
+      if (invPrior <= 0) return { fired: false };
+      const invGrowth = get(v, "inventory") / invPrior - 1;
+      const revGrowth = get(v, "revenue_growth");
+      const gap = invGrowth - revGrowth;
+      if (gap <= RETAIL_THRESHOLDS.inventoryGapPoints) return { fired: false };
+      return {
+        fired: true,
+        detail: `Inventory ${pct(invGrowth)} vs revenue ${pct(revGrowth)} (${pts(gap)})`,
+        evidence: { inventory_growth: invGrowth, revenue_growth: revGrowth, gap },
+      };
+    },
+  },
+  {
+    id: "gross_margin_drop",
+    label: "Gross margin fell sharply",
+    description:
+      "The share of revenue left after the cost of goods fell by more than 2 points: markdowns, higher costs or a shift to lower-margin products.",
+    threshold: "gross margin down more than 2 points from the prior year",
+    requires: [
+      { metric: "gross_margin", year: "current" },
+      { metric: "gross_margin", year: "prior" },
+    ],
+    check: (v) => {
+      const now = get(v, "gross_margin");
+      const before = get(v, "gross_margin@prior");
+      const change = now - before;
+      if (change >= -RETAIL_THRESHOLDS.grossMarginDropPoints) return { fired: false };
+      return {
+        fired: true,
+        detail: `Gross margin ${share(now)} vs ${share(before)} the year before (${pts(change)})`,
+        evidence: { gross_margin: now, gross_margin_prior: before, change },
+      };
+    },
+  },
+  {
+    id: "operating_margin_drop",
+    label: "Operating margin fell sharply",
+    description:
+      "Profit from running the business fell by more than 2 points of revenue: costs grew faster than sales, or margins on goods fell.",
+    threshold: "operating margin down more than 2 points from the prior year",
+    requires: [
+      { metric: "operating_margin", year: "current" },
+      { metric: "operating_margin", year: "prior" },
+    ],
+    check: (v) => {
+      const now = get(v, "operating_margin");
+      const before = get(v, "operating_margin@prior");
+      const change = now - before;
+      if (change >= -RETAIL_THRESHOLDS.operatingMarginDropPoints) return { fired: false };
+      return {
+        fired: true,
+        detail: `Operating margin ${share(now)} vs ${share(before)} the year before (${pts(change)})`,
+        evidence: { operating_margin: now, operating_margin_prior: before, change },
+      };
+    },
+  },
+  {
+    id: "negative_free_cash_flow",
+    label: "Negative free cash flow",
+    description:
+      "Operating cash flow didn't cover spending on stores and equipment, so the gap was funded from cash or borrowing.",
+    threshold: "free-cash-flow margin below 0",
+    requires: [{ metric: "free_cash_flow_margin", year: "current" }],
+    check: (v) => {
+      const fcf = get(v, "free_cash_flow_margin");
+      if (fcf >= 0) return { fired: false };
+      return {
+        fired: true,
+        detail: `Free cash flow ${pct(fcf)} of revenue`,
+        evidence: { free_cash_flow_margin: fcf },
+      };
+    },
+  },
+  {
+    id: "weak_cash_conversion",
+    label: "Profit not turning into cash",
+    description:
+      "Operating cash flow was below net income. Retailers normally sit well above 1 because depreciation is a non-cash cost, so this is unusual and worth reading about.",
+    threshold: "operating cash flow ÷ net income below 1.0",
+    requires: [{ metric: "cash_conversion", year: "current" }],
+    check: (v) => {
+      const cc = get(v, "cash_conversion");
+      if (cc >= RETAIL_THRESHOLDS.cashConversionMin) return { fired: false };
+      return {
+        fired: true,
+        detail: `Operating cash flow was ${cc.toFixed(2)}× net income`,
+        evidence: { cash_conversion: cc },
+      };
+    },
+  },
+];
+
 export const retailProfile: SectorProfile = {
   id: "retail",
   label: "Retail",
   inputs,
   metrics,
+  redFlags,
 };

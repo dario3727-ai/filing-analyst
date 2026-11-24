@@ -5,7 +5,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { checkEnv, type Env } from "../env.ts";
-import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RunUpdate } from "./store.ts";
+import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RedFlagRow, RunUpdate } from "./store.ts";
 
 /** Rows per upsert request: keeps each request small; ~4,000 facts → 8 requests. */
 export const FACT_BATCH_SIZE = 500;
@@ -75,6 +75,17 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
         written += count ?? batch.length;
       }
       return written;
+    },
+
+    async replaceRedFlags(companyId: number, rows: readonly RedFlagRow[]) {
+      // Two requests, not one transaction: if the insert fails, the run is
+      // logged as failed and the next run rebuilds the flags.
+      const { error: deleteError } = await client.from("red_flags").delete().eq("company_id", companyId);
+      if (deleteError) fail("delete red flags", deleteError.message);
+      if (rows.length === 0) return 0;
+      const { error, count } = await client.from("red_flags").insert([...rows], { count: "exact" });
+      if (error) fail("insert red flags", error.message);
+      return count ?? rows.length;
     },
   };
 }

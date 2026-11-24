@@ -1,4 +1,4 @@
-import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RunUpdate } from "@/lib/ingest/store";
+import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RedFlagRow, RunUpdate } from "@/lib/ingest/store";
 
 /** In-memory IngestStore for tests: behaves like the real upserts, keyed the same way. */
 export function createFakeStore(): IngestStore & {
@@ -6,8 +6,10 @@ export function createFakeStore(): IngestStore & {
   filings: Map<string, FilingRow>;
   facts: Map<string, FactRow>;
   ratios: Map<string, RatioRow>;
+  redFlags: RedFlagRow[];
   runs: Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>;
 } {
+  let redFlags: RedFlagRow[] = [];
   const companies = new Map<string, CompanyRow & { id: number }>();
   const filings = new Map<string, FilingRow>();
   const facts = new Map<string, FactRow>();
@@ -21,6 +23,9 @@ export function createFakeStore(): IngestStore & {
     filings,
     facts,
     ratios,
+    get redFlags() {
+      return redFlags;
+    },
     runs,
     async startRun(ticker, params) {
       const id = nextRunId++;
@@ -50,6 +55,10 @@ export function createFakeStore(): IngestStore & {
     },
     async upsertRatios(rows) {
       for (const row of rows) ratios.set(`${row.company_id}|${row.fiscal_year}|${row.metric}`, row);
+      return rows.length;
+    },
+    async replaceRedFlags(companyId, rows) {
+      redFlags = [...redFlags.filter((f) => f.company_id !== companyId), ...rows];
       return rows.length;
     },
   };

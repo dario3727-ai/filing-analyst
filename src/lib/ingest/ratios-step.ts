@@ -3,10 +3,11 @@
  * Companies without a profile of their own (e.g. the Adobe crash test) get
  * the retail profile with a label on every result (decision 2026-11-24).
  */
-import { computeRatios } from "../../metrics/engine.ts";
+import { computeRatios, type RatioResult } from "../../metrics/engine.ts";
 import { getProfile } from "../../metrics/profiles/index.ts";
 import { retailProfile } from "../../metrics/profiles/retail.ts";
 import type { Fact } from "../../metrics/resolve.ts";
+import type { SectorProfile } from "../../metrics/types.ts";
 import type { IngestStore } from "./store.ts";
 
 export const CRASH_TEST_LABEL = "Retail metrics applied to a non-retail company (crash test)";
@@ -19,6 +20,9 @@ export interface RatiosStepResult {
   notApplicable: number;
   /** Count of not-applicable results per reason, for the run summary. */
   reasons: Record<string, number>;
+  /** Passed on to the red-flag step. */
+  results: RatioResult[];
+  profileUsed: SectorProfile;
 }
 
 export async function ingestRatios(
@@ -63,5 +67,7 @@ export async function ingestRatios(
     ok,
     notApplicable: results.length - ok,
     reasons,
+    results,
+    profileUsed: profile,
   };
 }

@@ -102,6 +102,21 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 - **Spot check (Target fiscal 2024):** all 11 computed ratios match an independent SQL calculation from the raw facts, and the raw inputs (net sales $106,566M, cost of sales $76,502M, operating income $5,566M, net earnings $4,091M, inventory $12,740M / $11,886M, diluted EPS $8.86 / $8.94) were checked by hand against the 10-K (tgt-20250201.htm) on 2026-11-24 and match.
 - **Alternatives:** always "not applicable" across splits; scaling 53-week years to 52 weeks (over-corrects, since the extra week is usually slow); all "not applicable" for the crash test.
 
+## 2026-11-24: Retail red-flag rules and thresholds
+Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a quarter of company-years get at least one flag.
+
+| Rule | Threshold | Fired | Why it matters |
+| --- | --- | --- | --- |
+| `inventory_outpaces_sales` | inventory growth − revenue growth > 10 points | 6 | Unsold stock piling up usually means markdowns next year. Target fiscal 2021 (+30.5% vs +13.3%) fired a year before its fiscal 2022 margin drop; Walmart fiscal 2021 too. |
+| `gross_margin_drop` | gross margin down > 2 points year over year | 5 | Markdowns, cost pressure or mix shift (Target 2022: 29.3% → 24.6%). |
+| `operating_margin_drop` | operating margin down > 2 points year over year | 8 | Costs outgrowing sales (Five Below 2022 and 2024, Gap 2019). |
+| `negative_free_cash_flow` | free-cash-flow margin < 0 | 4 | Store and equipment spending not covered by operating cash flow (Target 2022, Gap 2020 and 2022). |
+| `weak_cash_conversion` | operating cash flow ÷ net income < 1.0 | 0 | Retailers sit well above 1 because depreciation is non-cash, so falling below is unusual. Kept as a rare-event check. |
+
+- **Left out:** receivables growing faster than revenue. Most retail sales are paid at the till, so receivables are small and their growth noisy (Kroger fiscal 2015 +36 points); judged not a meaningful warning for retail. The receivables-vs-revenue *metric* stays, without a flag.
+- **Behavior:** a rule needing a missing or not-applicable value doesn't fire. Each flag stores a plain-English detail, the numbers that triggered it, and the notes of the metrics used (53-week years, crash-test label). A company's flags are replaced on every run so a flag that stops firing disappears.
+- **Verified:** stored counts match the calibration exactly; re-running a company leaves its count unchanged.
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.
