@@ -21,9 +21,10 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] Ratio engine with "not applicable" handling, plus tests
   - [x] Stock-split adjustment for per-share and share-count values (Walmart 3-for-1 in 2024, Kroger 2-for-1 in 2015; see decisions 2026-11-24)
 - [x] Red-flag rules with thresholds documented, plus tests
-- [ ] `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>` ties it together and logs to `ingestion_runs` (all XBRL years are stored; the window limits which 10-Ks are loaded)
+- [x] `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>` ties it together and logs to `ingestion_runs` (all XBRL years are stored; the window limits which 10-Ks are loaded)
 - **Done when:** all test-set companies load, the crash-test company runs without errors, and ratios match a manual spot check for one retailer.
 - **Showable:** a tested tool that pulls any company's financials and calculates its ratios.
+- **Milestone 1 completed 2026-11-24:** all 7 companies load with `npm run ingest:test-set` (21 SEC requests); Adobe runs without errors; Target fiscal 2024 ratios match an independent SQL calculation and the 10-K.
 
 ## Milestone 2: filing text (weeks 3–4)
 - [ ] Download 10-Ks to Storage, skipping files already saved

@@ -2,7 +2,7 @@
 
 An AI tool that reads 10-K filings and explains *why* the numbers moved, with every claim cited to the exact passage and checked against the company's reported data.
 
-> Status: planning complete, build starting. See [docs/build-plan.md](docs/build-plan.md) for progress.
+> Status: milestone 1 of 6 complete. The numbers pipeline loads any company's SEC data and computes ratios and red flags for the seven test-set companies. Next: filing text. See [docs/build-plan.md](docs/build-plan.md).
 
 ## What it does
 
@@ -77,17 +77,47 @@ Fixed monthly cost during the build is $0: Supabase, Vercel Hobby, GitHub and Vo
 
 ## Setup
 
-*Filled in during milestone 0.* Expected shape:
+Developed on Linux (WSL on Windows; see [docs/decisions.md](docs/decisions.md)). You need Node 24 (`.nvmrc`), a free Supabase project and, for later milestones, Claude and Voyage API keys.
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/dario3727-ai/filing-analyst.git
 cd filing-analyst
-npm install
-cp .env.example .env.local   # then add your keys
-npm run db:migrate
-npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>
-npm run dev
+nvm use                      # Node 24, from .nvmrc
+npm ci
+cp .env.example .env.local   # then fill in the values
+npm run check:env            # checks every variable without printing it
 ```
+
+Connect the database (once), then create the tables:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <your-project-ref>
+npm run db:migrate           # applies supabase/migrations/ to the linked project
+```
+
+Load data and run the app:
+
+```bash
+npm run ingest -- --ticker WMT --from 2023 --to 2025   # one company
+npm run ingest:test-set                                # all seven (default window 2023–2025)
+npm run profile:coverage                               # which XBRL tag fed each input
+npm run dev                                            # http://localhost:3000
+```
+
+Checks (the same ones CI runs on every push):
+
+```bash
+npm run lint
+npm run typecheck
+npm test
+```
+
+What `npm run ingest` does for one company, logged in `ingestion_runs`:
+1. **Submissions:** company details and the 10-Ks in the fiscal-year window → `companies`, `filings`.
+2. **Company facts:** every annual XBRL fact, all years, de-duplicated (latest filing wins) → `financial_facts`.
+3. **Ratios:** 12 retail metrics per fiscal year, with stock-split adjustment, 53-week notes and "not applicable" reasons → `ratios`.
+4. **Red flags:** five calibrated rules → `red_flags`.
 
 ## Known limitations
 
