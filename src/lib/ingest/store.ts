@@ -25,6 +25,19 @@ export interface FilingRow {
   // must not reset what later steps (download, parse) have recorded.
 }
 
+export interface FactRow {
+  company_id: number;
+  concept: string;
+  unit: string;
+  value: number;
+  period_start: string | null;
+  period_end: string;
+  fiscal_year: number;
+  accession_no: string;
+  filed_at: string;
+  form: string;
+}
+
 export type RunStatus = "running" | "success" | "failed";
 
 export interface RunUpdate {
@@ -44,4 +57,6 @@ export interface IngestStore {
   upsertCompany(row: CompanyRow): Promise<number>;
   /** Inserts or updates by accession number; returns how many rows were written. */
   upsertFilings(rows: readonly FilingRow[]): Promise<number>;
+  /** Inserts or updates by (company, concept, unit, period); returns how many rows were written. */
+  upsertFacts(rows: readonly FactRow[]): Promise<number>;
 }

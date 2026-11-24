@@ -88,6 +88,16 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 - **Details:** upserts key on `cik` and `accession_no`, and never send `status` or `storage_path`, so re-running submissions can't undo later steps. Each run is logged in `ingestion_runs`, failed runs included.
 - **Alternatives:** hand-written fetch calls to the REST API (no dependency, but rebuilding what the client does).
 
+## 2026-11-24: Which company facts are stored, and de-duplication verified on real data
+- **Kept:** facts from 10-K and 10-K/A; durations of 350–380 days (52/53-week years); point-in-time values only at a fiscal year end (dates taken from the annual durations). Dropped: 10-Q facts, quarterly values inside 10-Ks, cover-page dates such as shares outstanding in March.
+- **De-duplication (real data, all 7 companies, every year since ~2007):** about half of annual 10-K facts are repeats. Walmart: 8,514 annual facts reported → 4,085 unique; 2,850 periods reported more than once. Totals: 28,252 unique facts stored, 10 MB. Re-running a company leaves the row count unchanged, and the database has 0 duplicate periods.
+- **Restatements:** 47–387 periods per company were later reported with a different value: stock splits (Kroger fiscal 2013 diluted EPS $2.90 → $1.45), reclassifications (Target fiscal 2013 cost of goods sold −2.2%, Gap receivables −10.6%) and rounding (Adobe, ≤0.02%). The latest value is kept, per the decision above.
+
+## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
+- **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
+- **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.
+- **Options for the ratio engine task:** (a) detect splits from periods reported both before and after (value ratio ≈ 2, 3, 1.5…) and scale earlier per-share and share-count values by that factor, which uses only XBRL numbers; (b) mark per-share comparisons across a detected split as not comparable; (c) both: adjust when the ratio is clean, otherwise mark not comparable. The SEC's split-ratio tag isn't among the stored annual facts for any test-set company, so detection has to come from the overlapping values.
+
 ## 2026-11-24: Non-retail companies get the "unprofiled" sector profile for now
 - **Decision:** SIC 5200–5999 (retail trade) → `retail`; anything else, like Adobe (7372) → `unprofiled`.
 - **Why:** v1 only has a retail profile; the label makes the crash-test case explicit. How the ratio engine treats `unprofiled` is decided in the profile task.

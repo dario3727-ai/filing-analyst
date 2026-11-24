@@ -27,13 +27,15 @@ function fakeSec(routes: Record<string, string>) {
   return { sec, asked };
 }
 
-const WMT_ROUTES = {
+const FACTS_URL = "https://data.sec.gov/api/xbrl/companyfacts/CIK0000104169.json";
+const WMT_ROUTES: Record<string, string> = {
   "https://www.sec.gov/files/company_tickers.json": TICKERS,
   "https://data.sec.gov/submissions/CIK0000104169.json": fixtureText("submissions-wmt.json"),
+  [FACTS_URL]: fixtureText("companyfacts-wmt-trimmed.json"),
 };
 
-describe("runIngest: submissions step on real Walmart data", () => {
-  it("stores the company and its 10-Ks for the window, and logs a successful run", async () => {
+describe("runIngest on real Walmart data", () => {
+  it("stores the company, its 10-Ks and its annual facts, and logs a successful run", async () => {
     const { sec } = fakeSec(WMT_ROUTES);
     const store = createFakeStore();
     const result = await runIngest({ ticker: "WMT", fromYear: 2023, toYear: 2025 }, { sec, store, now: () => "T" });
@@ -50,13 +52,30 @@ describe("runIngest: submissions step on real Walmart data", () => {
       [2024, "2025-01-31"],
       [2025, "2026-01-31"],
     ]);
+
+    // Facts for every year, not just the window, all tied to the company.
+    const facts = [...store.facts.values()];
+    expect(facts.length).toBe(result.facts.stored);
+    expect(facts.every((f) => f.company_id === result.submissions.companyId)).toBe(true);
+    expect(result.facts.firstYear).toBeLessThan(2023);
+    expect(result.facts.lastYear).toBe(2025);
+    expect(facts.find((f) => f.concept === "us-gaap:CostOfRevenue" && f.period_end === "2009-01-31")?.value).toBe(
+      303_941_000_000,
+    );
+
     expect(store.runs.get(result.runId)).toMatchObject({
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "submissions",
+      step: "company_facts",
       company_id: result.submissions.companyId,
-      counts: { filings: 3, older_pages: 0, sec_requests: 2 },
+      counts: {
+        filings: 3,
+        older_pages: 0,
+        facts: result.facts.stored,
+        facts_restated: result.facts.stats.restated,
+        sec_requests: 3,
+      },
       finished_at: "T",
     });
   });
@@ -64,10 +83,12 @@ describe("runIngest: submissions step on real Walmart data", () => {
   it("is safe to run twice: same rows, same company id", async () => {
     const store = createFakeStore();
     const first = await runIngest({ ticker: "WMT", fromYear: 2023, toYear: 2025 }, { ...fakeSec(WMT_ROUTES), store });
+    const factsAfterFirst = store.facts.size;
     const second = await runIngest({ ticker: "WMT", fromYear: 2023, toYear: 2025 }, { ...fakeSec(WMT_ROUTES), store });
     expect(second.submissions.companyId).toBe(first.submissions.companyId);
     expect(store.companies.size).toBe(1);
     expect(store.filings.size).toBe(3);
+    expect(store.facts.size).toBe(factsAfterFirst);
     expect(store.runs.size).toBe(2); // each run is logged
   });
 
@@ -103,6 +124,17 @@ describe("runIngest: submissions step on real Walmart data", () => {
     expect(run).toMatchObject({ ticker: "NOPE", status: "failed", finished_at: "T" });
     expect(run?.error).toMatch(/"NOPE" not found/);
     expect(store.companies.size).toBe(0);
+  });
+
+  it("records how far a run got when a later step fails", async () => {
+    const routes = { ...WMT_ROUTES };
+    delete routes[FACTS_URL]; // company facts → 404
+    const { sec } = fakeSec(routes);
+    const store = createFakeStore();
+    await expect(runIngest({ ticker: "WMT", fromYear: 2023, toYear: 2025 }, { sec, store })).rejects.toThrow(/HTTP 404/);
+    expect(store.runs.get(1)).toMatchObject({ status: "failed", step: "submissions", counts: { filings: 3 } });
+    expect(store.filings.size).toBe(3); // step 1's work is kept
+    expect(store.facts.size).toBe(0);
   });
 });
 

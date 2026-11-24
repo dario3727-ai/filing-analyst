@@ -16,9 +16,10 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] SEC client: User-Agent, rate limiter (≤8 req/s), retries, tests
 - [x] Migrations for `companies`, `filings`, `financial_facts`, `ratios`, `red_flags`, `ingestion_runs`
 - [x] Submissions → `companies` and `filings`
-- [ ] Company facts → `financial_facts`, with deduplication verified on real data
+- [x] Company facts → `financial_facts`, with deduplication verified on real data
 - [ ] Retail sector profile: metrics, formulas, XBRL tag fallbacks
 - [ ] Ratio engine with "not applicable" handling, plus tests
+  - [ ] Stock-split adjustment for per-share and share-count values (Walmart 3-for-1 in 2024, Kroger 2-for-1 in 2015; see decisions 2026-11-24)
 - [ ] Red-flag rules with thresholds documented, plus tests
 - [ ] `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>` ties it together and logs to `ingestion_runs` (all XBRL years are stored; the window limits which 10-Ks are loaded)
 - **Done when:** all test-set companies load, the crash-test company runs without errors, and ratios match a manual spot check for one retailer.

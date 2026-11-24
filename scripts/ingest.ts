@@ -11,13 +11,22 @@ try {
   const store = createSupabaseStoreFromEnv(process.env);
 
   console.log(`Ingesting ${args.ticker}, fiscal years ${args.fromYear}–${args.toYear}...`);
-  const { runId, submissions: s } = await runIngest(args, { sec, store });
+  const { runId, submissions: s, facts: f } = await runIngest(args, { sec, store });
 
   console.log(`  company: ${s.name} (CIK ${s.cik}), profile: ${s.sectorProfile}`);
   for (const t of s.tenKs) {
     console.log(`  10-K  FY${t.fiscalYear}  period ending ${t.periodEnd}  filed ${t.filedAt}  ${t.primaryDocument}`);
   }
   if (s.olderPagesFetched > 0) console.log(`  older filing pages fetched: ${s.olderPagesFetched}`);
+  console.log(
+    `  facts: ${f.stored} stored (FY${f.firstYear ?? "?"}–FY${f.lastYear ?? "?"}), from ${f.stats.annualReported} annual ` +
+      `reports; ${f.stats.reportedMoreThanOnce} periods reported more than once, ${f.stats.restated} restated`,
+  );
+  for (const r of f.sampleRestatements) {
+    console.log(
+      `    restated: ${r.concept} ending ${r.periodEnd}: ${r.original.value} (filed ${r.original.filed}) → ${r.latest.value} (filed ${r.latest.filed})`,
+    );
+  }
   for (const w of s.warnings) console.log(`  warning: ${w}`);
   console.log(`Done. Run #${runId}, ${sec.requestCount} SEC requests.`);
 } catch (error) {

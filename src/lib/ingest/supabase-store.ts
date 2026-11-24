@@ -5,7 +5,10 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { checkEnv, type Env } from "../env.ts";
-import type { CompanyRow, FilingRow, IngestStore, RunUpdate } from "./store.ts";
+import type { CompanyRow, FactRow, FilingRow, IngestStore, RunUpdate } from "./store.ts";
+
+/** Rows per upsert request: keeps each request small; ~4,000 facts → 8 requests. */
+export const FACT_BATCH_SIZE = 500;
 
 function fail(operation: string, message: string): never {
   throw new Error(`Supabase ${operation} failed: ${message}`);
@@ -45,6 +48,20 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
         .select("id");
       if (error) fail("upsert filings", error.message);
       return Array.isArray(data) ? data.length : 0;
+    },
+
+    async upsertFacts(rows: readonly FactRow[]) {
+      let written = 0;
+      for (let i = 0; i < rows.length; i += FACT_BATCH_SIZE) {
+        const batch = rows.slice(i, i + FACT_BATCH_SIZE);
+        // Same columns as the financial_facts_one_per_period unique constraint.
+        const { error, count } = await client
+          .from("financial_facts")
+          .upsert([...batch], { onConflict: "company_id,concept,unit,period_start,period_end", count: "exact" });
+        if (error) fail(`upsert facts (rows ${i + 1}–${i + batch.length})`, error.message);
+        written += count ?? batch.length;
+      }
+      return written;
     },
   };
 }

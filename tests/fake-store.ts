@@ -1,13 +1,15 @@
-import type { CompanyRow, FilingRow, IngestStore, RunUpdate } from "@/lib/ingest/store";
+import type { CompanyRow, FactRow, FilingRow, IngestStore, RunUpdate } from "@/lib/ingest/store";
 
 /** In-memory IngestStore for tests: behaves like the real upserts, keyed the same way. */
 export function createFakeStore(): IngestStore & {
   companies: Map<string, CompanyRow & { id: number }>;
   filings: Map<string, FilingRow>;
+  facts: Map<string, FactRow>;
   runs: Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>;
 } {
   const companies = new Map<string, CompanyRow & { id: number }>();
   const filings = new Map<string, FilingRow>();
+  const facts = new Map<string, FactRow>();
   const runs = new Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>();
   let nextCompanyId = 1;
   let nextRunId = 1;
@@ -15,6 +17,7 @@ export function createFakeStore(): IngestStore & {
   return {
     companies,
     filings,
+    facts,
     runs,
     async startRun(ticker, params) {
       const id = nextRunId++;
@@ -34,6 +37,12 @@ export function createFakeStore(): IngestStore & {
     },
     async upsertFilings(rows) {
       for (const row of rows) filings.set(row.accession_no, { ...filings.get(row.accession_no), ...row });
+      return rows.length;
+    },
+    async upsertFacts(rows) {
+      for (const row of rows) {
+        facts.set(`${row.company_id}|${row.concept}|${row.unit}|${row.period_start ?? ""}|${row.period_end}`, row);
+      }
       return rows.length;
     },
   };
