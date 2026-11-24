@@ -102,3 +102,4 @@ npm run dev
 - [docs/database-schema.md](docs/database-schema.md): tables and columns (draft)
 - [docs/build-plan.md](docs/build-plan.md): milestones, tasks and progress
 - [docs/decisions.md](docs/decisions.md): decision log
+- [docs/typescript-primer.md](docs/typescript-primer.md): TypeScript primer using this project's code
