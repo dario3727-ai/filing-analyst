@@ -17,7 +17,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [x] Migrations for `companies`, `filings`, `financial_facts`, `ratios`, `red_flags`, `ingestion_runs`
 - [x] Submissions → `companies` and `filings`
 - [x] Company facts → `financial_facts`, with deduplication verified on real data
-- [ ] Retail sector profile: metrics, formulas, XBRL tag fallbacks
+- [x] Retail sector profile: metrics, formulas, XBRL tag fallbacks
 - [ ] Ratio engine with "not applicable" handling, plus tests
   - [ ] Stock-split adjustment for per-share and share-count values (Walmart 3-for-1 in 2024, Kroger 2-for-1 in 2015; see decisions 2026-11-24)
 - [ ] Red-flag rules with thresholds documented, plus tests

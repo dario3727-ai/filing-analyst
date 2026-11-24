@@ -13,7 +13,8 @@
     "db:migrate": "supabase db push --remote",
     "db:new": "supabase migration new",
     "check:env": "node --env-file-if-exists=.env.local scripts/check-env.ts",
-    "ingest": "node --env-file-if-exists=.env.local scripts/ingest.ts"
+    "ingest": "node --env-file-if-exists=.env.local scripts/ingest.ts",
+    "profile:coverage": "node --env-file-if-exists=.env.local scripts/profile-coverage.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
