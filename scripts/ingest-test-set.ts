@@ -29,7 +29,8 @@ for (const company of TEST_SET) {
     rows.push(
       `${company.ticker.padEnd(5)} ok    10-Ks ${String(r.submissions.tenKs.length).padStart(2)}  facts ${String(r.facts.stored).padStart(5)}  ` +
         `ratios ${String(r.ratios.ok).padStart(3)} computed / ${String(r.ratios.notApplicable).padStart(3)} n/a  ` +
-        `flags ${String(r.redFlags.stored).padStart(2)}  run #${r.runId}${r.ratios.crashTest ? "  (crash test)" : ""}${warn}`,
+        `flags ${String(r.redFlags.stored).padStart(2)}  docs ${r.documents.downloaded} new / ${r.documents.alreadySaved + r.documents.repaired} saved  ` +
+        `run #${r.runId}${r.ratios.crashTest ? "  (crash test)" : ""}${warn}`,
     );
   } catch (error) {
     failures++;

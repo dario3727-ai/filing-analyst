@@ -58,6 +58,15 @@ export interface RedFlagRow {
   evidence: { values: Record<string, number>; notes: string[] };
 }
 
+/** A filings row as stored, for steps that work on documents. */
+export interface StoredFiling {
+  accession_no: string;
+  fiscal_year: number;
+  primary_document: string;
+  storage_path: string | null;
+  status: string;
+}
+
 export type RunStatus = "running" | "success" | "failed";
 
 export interface RunUpdate {
@@ -86,4 +95,13 @@ export interface IngestStore {
    * no longer fires (e.g. after a restatement) must disappear.
    */
   replaceRedFlags(companyId: number, rows: readonly RedFlagRow[]): Promise<number>;
+
+  // --- raw filing documents (Supabase Storage, bucket raw-filings) ---
+  getFilings(companyId: number): Promise<StoredFiling[]>;
+  /** True if a file already exists at this path in the bucket. */
+  documentExists(path: string): Promise<boolean>;
+  /** Uploads without overwriting; "exists" if something is already at the path. */
+  uploadDocument(path: string, bytes: Uint8Array): Promise<"uploaded" | "exists">;
+  /** Records where a filing's document is stored and sets status to downloaded. */
+  markDownloaded(accessionNo: string, storagePath: string): Promise<void>;
 }

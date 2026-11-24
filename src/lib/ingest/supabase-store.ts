@@ -5,7 +5,18 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { checkEnv, type Env } from "../env.ts";
-import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RedFlagRow, RunUpdate } from "./store.ts";
+import type {
+  CompanyRow,
+  FactRow,
+  FilingRow,
+  IngestStore,
+  RatioRow,
+  RedFlagRow,
+  RunUpdate,
+  StoredFiling,
+} from "./store.ts";
+
+export const RAW_FILINGS_BUCKET = "raw-filings";
 
 /** Rows per upsert request: keeps each request small; ~4,000 facts → 8 requests. */
 export const FACT_BATCH_SIZE = 500;
@@ -86,6 +97,51 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
       const { error, count } = await client.from("red_flags").insert([...rows], { count: "exact" });
       if (error) fail("insert red flags", error.message);
       return count ?? rows.length;
+    },
+
+    async getFilings(companyId: number) {
+      const { data, error } = await client
+        .from("filings")
+        .select("accession_no, fiscal_year, primary_document, storage_path, status")
+        .eq("company_id", companyId);
+      if (error) fail("get filings", error.message);
+      return (data ?? []).map(
+        (r): StoredFiling => ({
+          accession_no: String(r.accession_no),
+          fiscal_year: Number(r.fiscal_year),
+          primary_document: String(r.primary_document),
+          storage_path: r.storage_path === null ? null : String(r.storage_path),
+          status: String(r.status),
+        }),
+      );
+    },
+
+    async documentExists(path: string) {
+      const slash = path.lastIndexOf("/");
+      const folder = slash === -1 ? "" : path.slice(0, slash);
+      const name = path.slice(slash + 1);
+      const { data, error } = await client.storage.from(RAW_FILINGS_BUCKET).list(folder, { search: name, limit: 100 });
+      if (error) fail("check document", error.message);
+      return (data ?? []).some((item) => item.name === name);
+    },
+
+    async uploadDocument(path: string, bytes: Uint8Array) {
+      const { error } = await client.storage
+        .from(RAW_FILINGS_BUCKET)
+        .upload(path, bytes, { contentType: "text/html", upsert: false });
+      if (!error) return "uploaded";
+      // Never overwrite: an existing file means it's already saved.
+      const status = (error as { statusCode?: string | number }).statusCode;
+      if (String(status) === "409" || /already exists/i.test(error.message)) return "exists";
+      fail(`upload ${path}`, error.message);
+    },
+
+    async markDownloaded(accessionNo: string, storagePath: string) {
+      const { error } = await client
+        .from("filings")
+        .update({ storage_path: storagePath, status: "downloaded" })
+        .eq("accession_no", accessionNo);
+      if (error) fail("mark filing downloaded", error.message);
     },
   };
 }

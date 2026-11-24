@@ -40,6 +40,12 @@ export interface SecClient {
   getJson(url: string): Promise<unknown>;
   /** Fetches a document as text, e.g. 10-K HTML. */
   getText(url: string): Promise<string>;
+  /**
+   * Fetches a document as raw bytes, exactly as the SEC sent them. Used for
+   * filings we store: decoding is left to the parser, because older filings
+   * aren't always UTF-8.
+   */
+  getBytes(url: string): Promise<Uint8Array>;
   /** Requests sent so far, including retries. */
   readonly requestCount: number;
 }
@@ -138,6 +144,10 @@ export function createSecClient(options: SecClientOptions): SecClient {
     async getText(url) {
       const response = await request(url);
       return response.text();
+    },
+    async getBytes(url) {
+      const response = await request(url);
+      return new Uint8Array(await response.arrayBuffer());
     },
     get requestCount() {
       return requestCount;

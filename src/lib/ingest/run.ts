@@ -2,10 +2,11 @@
  * One ingest run for one company, logged in ingestion_runs from start to
  * finish, including failures. `step` records the last step completed, so a
  * failed run shows how far it got.
- * Steps: submissions → company facts → ratios → red flags.
+ * Steps: submissions → company facts → ratios → red flags → documents.
  */
 import type { SecClient } from "../sec/client.ts";
 import type { IngestArgs } from "./args.ts";
+import { ingestDocuments, type DocumentsStepResult } from "./documents-step.ts";
 import { ingestCompanyFacts, type FactsStepResult } from "./facts-step.ts";
 import { ingestRatios, type RatiosStepResult } from "./ratios-step.ts";
 import { ingestRedFlags, type RedFlagsStepResult } from "./red-flags-step.ts";
@@ -25,6 +26,7 @@ export interface IngestResult {
   facts: FactsStepResult;
   ratios: RatiosStepResult;
   redFlags: RedFlagsStepResult;
+  documents: DocumentsStepResult;
 }
 
 export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<IngestResult> {
@@ -54,14 +56,28 @@ export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<Ing
 
     const redFlags = await ingestRedFlags(store, submissions.companyId, ratios.profileUsed, facts.facts, ratios.results);
     counts.red_flags = redFlags.stored;
+    await store.updateRun(runId, { step: "red_flags", counts });
+
+    const documents = await ingestDocuments(
+      sec,
+      store,
+      submissions.companyId,
+      args.ticker,
+      submissions.cik,
+      submissions.tenKs,
+    );
+    counts.documents_downloaded = documents.downloaded;
+    counts.documents_already_saved = documents.alreadySaved;
+    counts.documents_repaired = documents.repaired;
+    counts.sec_requests = sec.requestCount;
     await store.updateRun(runId, {
-      step: "red_flags",
+      step: "documents",
       counts,
       status: "success",
       finished_at: now(),
       ...(submissions.warnings.length > 0 ? { error: `Warnings: ${submissions.warnings.join("; ")}` } : {}),
     });
-    return { runId, submissions, facts, ratios, redFlags };
+    return { runId, submissions, facts, ratios, redFlags, documents };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     counts.sec_requests = sec.requestCount;

@@ -117,6 +117,12 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Behavior:** a rule needing a missing or not-applicable value doesn't fire. Each flag stores a plain-English detail, the numbers that triggered it, and the notes of the metrics used (53-week years, crash-test label). A company's flags are replaced on every run so a flag that stops firing disappears.
 - **Verified:** stored counts match the calibration exactly; re-running a company leaves its count unchanged.
 
+## 2026-11-24: 10-K documents saved once, as raw bytes
+- **Decision:** ingest step 5 saves each 10-K in the window to `raw-filings/{TICKER}/{fiscal_year}.htm`. Skip if `filings.storage_path` is set; if the file is already in Storage (a run that crashed before updating the database), record it without downloading; otherwise download through the SEC client and upload with overwrite turned off. Files over the bucket's 50 MB limit are refused before upload.
+- **Why raw bytes:** the file is stored exactly as the SEC sent it. Older filings aren't always UTF-8, and decoding at download time can silently garble characters; the parser decides the encoding.
+- **Verified:** first run downloaded 21 10-Ks (47 MB); a second run downloaded none and made half the SEC requests (21 vs 42).
+- **Alternatives:** storing decoded text (smaller code path, but loses the original); re-downloading when unsure (breaks the "never twice" rule).
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.

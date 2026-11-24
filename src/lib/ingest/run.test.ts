@@ -21,7 +21,10 @@ function fakeSec(routes: Record<string, string>) {
     const url = String(input);
     asked.push(url);
     const body = routes[url];
-    return body === undefined ? new Response("not found", { status: 404 }) : new Response(body);
+    if (body !== undefined) return new Response(body);
+    // Any 10-K document: a tiny stand-in page.
+    if (url.startsWith("https://www.sec.gov/Archives/edgar/data/")) return new Response("<html>10-K</html>");
+    return new Response("not found", { status: 404 });
   };
   const sec = createSecClient({ userAgent: "Test test@example.org", fetchFn, clock: createFakeClock() });
   return { sec, asked };
@@ -79,16 +82,17 @@ describe("runIngest on real Walmart data", () => {
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "red_flags",
+      step: "documents",
       company_id: result.submissions.companyId,
       counts: {
         filings: 3,
         older_pages: 0,
         facts: result.facts.stored,
         facts_restated: result.facts.stats.restated,
-        sec_requests: 3,
+        sec_requests: 6, // tickers, submissions, company facts + three 10-K documents
         ratios: result.ratios.stored,
         red_flags: result.redFlags.stored,
+        documents_downloaded: 3,
       },
       finished_at: "T",
     });
@@ -104,6 +108,8 @@ describe("runIngest on real Walmart data", () => {
     expect(store.filings.size).toBe(3);
     expect(store.facts.size).toBe(factsAfterFirst);
     expect(store.redFlags.length).toBe(first.redFlags.stored); // replaced, not duplicated
+    expect(second.documents).toMatchObject({ downloaded: 0, alreadySaved: 3 }); // never downloaded twice
+    expect(store.documents.size).toBe(3);
     expect(store.runs.size).toBe(2); // each run is logged
   });
 

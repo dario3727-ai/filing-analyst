@@ -62,6 +62,12 @@ describe("createSecClient: basics", () => {
     await expect(client.getText("https://www.sec.gov/Archives/edgar/data/1/2/a.htm")).resolves.toBe("<html>10-K</html>");
   });
 
+  it("returns documents as raw bytes, untouched (a Windows-1252 curly quote stays byte 0x93)", async () => {
+    const bytes = new Uint8Array([0x3c, 0x70, 0x3e, 0x93, 0x68, 0x69, 0x94]); // <p>“hi” in Windows-1252
+    const { client } = setup([new Response(bytes)]);
+    await expect(client.getBytes("https://www.sec.gov/Archives/edgar/data/1/2/a.htm")).resolves.toEqual(bytes);
+  });
+
   it("refuses non-SEC URLs without sending anything", async () => {
     const { client, calls } = setup([]);
     await expect(client.getJson("https://example.com/x.json")).rejects.toThrow(/non-SEC URL/);
