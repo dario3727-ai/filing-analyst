@@ -12,7 +12,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - **Done when:** `npm test` passes locally and in CI, and the app runs at localhost.
 
 ## Milestone 1: the numbers pipeline (weeks 1–2)
-- [ ] Choose the test set (see below) and record it in `docs/decisions.md`
+- [x] Choose the test set (see below) and record it in `docs/decisions.md`
 - [ ] SEC client: User-Agent, rate limiter (≤8 req/s), retries, tests
 - [ ] Migrations for `companies`, `filings`, `financial_facts`, `ratios`, `red_flags`, `ingestion_runs`
 - [ ] Submissions → `companies` and `filings`
@@ -20,7 +20,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [ ] Retail sector profile: metrics, formulas, XBRL tag fallbacks
 - [ ] Ratio engine with "not applicable" handling, plus tests
 - [ ] Red-flag rules with thresholds documented, plus tests
-- [ ] `npm run ingest -- --ticker <TICKER>` ties it together and logs to `ingestion_runs`
+- [ ] `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>` ties it together and logs to `ingestion_runs` (all XBRL years are stored; the window limits which 10-Ks are loaded)
 - **Done when:** all test-set companies load, the crash-test company runs without errors, and ratios match a manual spot check for one retailer.
 - **Showable:** a tested tool that pulls any company's financials and calculates its ratios.
 
@@ -45,7 +45,8 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 
 ## Milestone 4: frontend (week 6)
 - [ ] Company list and search (preloaded companies only)
-- [ ] Overview: key metrics, 3-year revenue chart, ratio table, red flags
+- [ ] Year-range picker, limited to the fiscal years loaded for that company; all three screens filter by it
+- [ ] Overview: key metrics, revenue chart for the selected years, ratio table, red flags
 - [ ] Ask: question box, answer with numbered citations, source panel
 - [ ] What changed: placeholder until milestone 5 fills it
 - [ ] Layout works on a phone
@@ -66,17 +67,16 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 - [ ] Decisions log reviewed for interview prep
 - **Done when:** a stranger can open the live link and use all three screens.
 
-## Test set (confirm in milestone 1)
+## Test set (confirmed 2026-11-24)
 
-Pick 5–6 retailers that differ in size and format, so filing formats vary:
+Six retailers that differ in size and format, plus one non-retail crash test. Details and reasons in `docs/decisions.md`.
 
-| Slot | Candidates |
-| --- | --- |
-| Big box / general merchandise | Walmart, Target |
-| Warehouse club (non-January year end) | Costco |
-| Grocery | Kroger |
-| Specialty apparel | Gap Inc. |
-| Value / smaller retailer | Five Below |
-| Crash test (non-retail) | A large software company |
-
-Check each company's fiscal year end and recent filing history before committing to it.
+| Slot | Company | Ticker | CIK | Fiscal year end |
+| --- | --- | --- | --- | --- |
+| Big box / general merchandise | Walmart | WMT | 0000104169 | Jan 31 (fixed date) |
+| Big box / general merchandise | Target | TGT | 0000027419 | Saturday nearest Jan 31 (52/53 weeks) |
+| Warehouse club | Costco | COST | 0000909832 | Sunday nearest Aug 31 (52/53 weeks) |
+| Grocery | Kroger | KR | 0000056873 | Saturday nearest Jan 31 (52/53 weeks) |
+| Specialty apparel | Gap Inc. | GAP | 0000039911 | Saturday nearest Jan 31 (52/53 weeks) |
+| Value / smaller retailer | Five Below | FIVE | 0001177609 | Saturday nearest Jan 31 (52/53 weeks) |
+| Crash test (non-retail) | Adobe | ADBE | 0000796343 | Friday nearest Nov 30 (52/53 weeks) |

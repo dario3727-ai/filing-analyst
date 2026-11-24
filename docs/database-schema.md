@@ -1,6 +1,6 @@
 # Database schema (draft)
 
-A starting point, not final. Change it through migrations as real data teaches us more. Expected size for v1 (about 7 companies × 3 years): well under the Supabase free tier's 500 MB.
+A starting point, not final. Change it through migrations as real data teaches us more. Expected size for v1 (7 companies; all XBRL years, 10-K text for a window of up to ~7 years): roughly 200 MB, under the Supabase free tier's 500 MB. Measured and estimated figures are in `docs/decisions.md` (2026-11-24).
 
 ## Tables
 

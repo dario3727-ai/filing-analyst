@@ -26,8 +26,8 @@ Ratios still matter here, as the supporting layer:
 ## Version one scope
 
 - **Sector:** retail only, chosen on purpose. Retailers report similar metrics (revenue, cost of goods sold, inventory), so ratios and red flags behave consistently.
-- **Companies:** 5–6 retailers of different sizes and formats, plus one non-retail company used only as a crash test.
-- **Filings:** 10-Ks only, the last 3 fiscal years.
+- **Companies:** Walmart, Target, Costco, Kroger, Gap and Five Below, plus Adobe (software) used only as a crash test.
+- **Filings:** 10-Ks only, for a window of fiscal years chosen at ingestion (for example 2023–2025 while developing, longer for the demo). All XBRL financial data is stored for every year, and users pick a year range within what's loaded.
 - **Out of scope for v1:** 10-Qs and 8-Ks, banks and insurers, loading companies on demand, user accounts.
 
 The code is built so new sectors can be added later through sector profiles (see [CLAUDE.md](CLAUDE.md)), without rewriting the ratio engine.
@@ -85,7 +85,7 @@ cd filing-analyst
 npm install
 cp .env.example .env.local   # then add your keys
 npm run db:migrate
-npm run ingest -- --ticker <TICKER>
+npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>
 npm run dev
 ```
 

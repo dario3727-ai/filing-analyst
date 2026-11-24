@@ -25,8 +25,8 @@ flowchart TD
 
 Order of a run for one company:
 
-1. **Submissions:** fetch company details and filing list. Upsert `companies`; insert `filings` for the last 3 fiscal-year 10-Ks.
-2. **Company facts:** fetch all XBRL facts. Keep facts for the loaded fiscal years, deduplicate, and insert into `financial_facts`.
+1. **Submissions:** fetch company details and filing list. Upsert `companies`; insert `filings` for the 10-Ks in the requested fiscal-year window (`--from` / `--to`).
+2. **Company facts:** fetch all XBRL facts. Keep annual facts for every year available (not just the window: it's one request either way and small), deduplicate, and insert into `financial_facts`.
 3. **Ratios:** the ratio engine reads the company's sector profile and calculates each metric per fiscal year into `ratios`. Missing inputs → "not applicable" with a reason.
 4. **Red flags:** each rule in the profile runs against the ratios. A rule that returns true writes a `red_flags` row.
 5. **Documents:** download each 10-K (skip if already in Storage), save raw HTML to the `raw-filings` bucket.

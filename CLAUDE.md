@@ -53,7 +53,7 @@ Standing instructions for Claude Code on the Filing Analyst project. Read this, 
 
 - TypeScript in strict mode. No `any` unless there's a written reason.
 - Database changes only through SQL migration files in `supabase/migrations/`. Never edit the database by hand.
-- Ingestion scripts live in `scripts/` and run with `npm run ingest -- --ticker <TICKER>`. Every run writes to `ingestion_runs`.
+- Ingestion scripts live in `scripts/` and run with `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>`. Every run writes to `ingestion_runs`.
 - Tests next to the code or in `tests/`, using Vitest. Parser tests use saved copies of real filings as fixtures.
 - Pure functions for calculations (ratios, red-flag rules, chunking) so they're easy to test.
 
