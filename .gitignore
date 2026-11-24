@@ -1,7 +1,7 @@
-# Secrets
+# Secrets: every .env file (including editor backups) except the template
 .env
-.env.local
-.env*.local
+.env.*
+!.env.example
 
 # Dependencies and builds
 node_modules/
