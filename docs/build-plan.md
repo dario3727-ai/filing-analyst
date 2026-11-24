@@ -28,7 +28,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 
 ## Milestone 2: filing text (weeks 3–4)
 - [x] Download 10-Ks to Storage, skipping files already saved
-- [ ] Save a few real filings as test fixtures
+- [x] Save a few real filings as test fixtures
 - [ ] Section parser: find Items 1, 1A, 7, 7A, 8; skip the table of contents
 - [ ] Chunker: passages of a few hundred tokens with page and section metadata
 - [ ] Migrations for `sections` and `chunks`

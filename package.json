@@ -15,7 +15,8 @@
     "check:env": "node --env-file-if-exists=.env.local scripts/check-env.ts",
     "ingest": "node --env-file-if-exists=.env.local scripts/ingest.ts",
     "profile:coverage": "node --env-file-if-exists=.env.local scripts/profile-coverage.ts",
-    "ingest:test-set": "node --env-file-if-exists=.env.local scripts/ingest-test-set.ts"
+    "ingest:test-set": "node --env-file-if-exists=.env.local scripts/ingest-test-set.ts",
+    "fixtures:save": "node --env-file-if-exists=.env.local scripts/save-fixtures.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",

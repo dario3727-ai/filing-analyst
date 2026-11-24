@@ -123,6 +123,16 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Verified:** first run downloaded 21 10-Ks (47 MB); a second run downloaded none and made half the SEC requests (21 vs 42).
 - **Alternatives:** storing decoded text (smaller code path, but loses the original); re-downloading when unsure (breaks the "never twice" rule).
 
+## 2026-11-24: Parser fixtures: latest 10-K for all seven companies, gzip-compressed
+- **Decision:** `npm run fixtures:save -- --write` copies each company's latest stored 10-K from Supabase Storage (not the SEC) to `tests/fixtures/filings/{ticker}-{fiscal_year}.htm.gz`. 1.3 MB in total instead of 16.1 MB raw; byte-identical once unzipped. `.gitattributes` marks `*.gz` binary.
+- **What the fixtures show (input for the section parser):**
+  - All seven are pure ASCII: special characters are HTML entities, so encoding isn't a problem for current filings.
+  - "Item 1A" appears 4–15 times per filing (table of contents in the first 1–6% of the text, the real heading, cross-references in the text); matching the phrase isn't enough.
+  - 5 to 2,577 hidden elements (`display:none`, mostly hidden XBRL facts) must be dropped.
+  - 68–105 page breaks per filing, as CSS `page-break-before/after: always`; Kroger has no `<hr>` with them, so page numbering must use the CSS.
+  - 31k–57k words of visible text per filing.
+- **Alternatives:** raw HTML in the repo (16.1 MB working copy, readable on GitHub); downloading fixtures during tests (needs secrets in CI and the network).
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.
