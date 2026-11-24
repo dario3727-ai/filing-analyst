@@ -56,6 +56,8 @@ Standing instructions for Claude Code on the Filing Analyst project. Read this, 
 - Ingestion scripts live in `scripts/` and run with `npm run ingest -- --ticker <TICKER> --from <YEAR> --to <YEAR>`. Every run writes to `ingestion_runs`.
 - Tests next to the code or in `tests/`, using Vitest. Parser tests use saved copies of real filings as fixtures.
 - Pure functions for calculations (ratios, red-flag rules, chunking) so they're easy to test.
+- Code in `src/lib` imports other `src/lib` files with relative paths ending in `.ts` (e.g. `./cik.ts`), because scripts run directly by Node can't resolve the `@/` shortcut. Tests and app code may use `@/`.
+- Anything that waits or calls the network takes its clock and `fetch` as options, so tests use fakes and never hit real services.
 
 ## Retail-specific gotchas
 

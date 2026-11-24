@@ -13,7 +13,7 @@ About 8 weeks at 15–25 hours a week. That's an estimate: parsing (milestone 2)
 
 ## Milestone 1: the numbers pipeline (weeks 1–2)
 - [x] Choose the test set (see below) and record it in `docs/decisions.md`
-- [ ] SEC client: User-Agent, rate limiter (≤8 req/s), retries, tests
+- [x] SEC client: User-Agent, rate limiter (≤8 req/s), retries, tests
 - [ ] Migrations for `companies`, `filings`, `financial_facts`, `ratios`, `red_flags`, `ingestion_runs`
 - [ ] Submissions → `companies` and `filings`
 - [ ] Company facts → `financial_facts`, with deduplication verified on real data
