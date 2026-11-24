@@ -38,6 +38,18 @@ export interface FactRow {
   form: string;
 }
 
+export interface RatioRow {
+  company_id: number;
+  fiscal_year: number;
+  metric: string;
+  status: "ok" | "not_applicable";
+  value: number | null;
+  reason: string | null;
+  inputs: { values: Record<string, unknown>; notes: string[] };
+  profile: string;
+  computed_at: string;
+}
+
 export type RunStatus = "running" | "success" | "failed";
 
 export interface RunUpdate {
@@ -59,4 +71,6 @@ export interface IngestStore {
   upsertFilings(rows: readonly FilingRow[]): Promise<number>;
   /** Inserts or updates by (company, concept, unit, period); returns how many rows were written. */
   upsertFacts(rows: readonly FactRow[]): Promise<number>;
+  /** Inserts or updates by (company, fiscal year, metric); returns how many rows were written. */
+  upsertRatios(rows: readonly RatioRow[]): Promise<number>;
 }

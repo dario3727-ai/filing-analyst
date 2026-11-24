@@ -34,7 +34,12 @@ describe("resolveInput", () => {
       fact({ concept: "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax", value: 706_413 }),
       fact({ concept: "us-gaap:Revenues", value: 713_163 }),
     ];
-    expect(resolveInput(facts, revenue, 2025)).toEqual({ value: 713_163, tag: "us-gaap:Revenues", periodEnd: "2026-01-31" });
+    expect(resolveInput(facts, revenue, 2025)).toEqual({
+      value: 713_163,
+      tag: "us-gaap:Revenues",
+      periodStart: "2025-02-01",
+      periodEnd: "2026-01-31",
+    });
   });
 
   it("falls back to the next tag (Target, Kroger: contract revenue only)", () => {

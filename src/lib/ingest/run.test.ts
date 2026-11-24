@@ -63,11 +63,23 @@ describe("runIngest on real Walmart data", () => {
       303_941_000_000,
     );
 
+    // Ratios: the trimmed fixture only has cost of revenue, inventory and EPS, so
+    // most metrics are not applicable, but every one is stored with a reason.
+    const ratios = [...store.ratios.values()];
+    expect(ratios.length).toBe(result.ratios.stored);
+    expect(ratios.every((r) => r.profile === "retail")).toBe(true);
+    expect(ratios.find((r) => r.fiscal_year === 2025 && r.metric === "gross_margin")).toMatchObject({
+      status: "not_applicable",
+      reason: "No revenue reported for FY2025",
+    });
+    expect(ratios.find((r) => r.fiscal_year === 2025 && r.metric === "inventory_turnover")?.status).toBe("ok");
+    expect(result.ratios.crashTest).toBe(false);
+
     expect(store.runs.get(result.runId)).toMatchObject({
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "company_facts",
+      step: "ratios",
       company_id: result.submissions.companyId,
       counts: {
         filings: 3,
@@ -75,6 +87,7 @@ describe("runIngest on real Walmart data", () => {
         facts: result.facts.stored,
         facts_restated: result.facts.stats.restated,
         sec_requests: 3,
+        ratios: result.ratios.stored,
       },
       finished_at: "T",
     });

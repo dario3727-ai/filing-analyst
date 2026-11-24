@@ -6,6 +6,7 @@
 import type { SecClient } from "../sec/client.ts";
 import type { IngestArgs } from "./args.ts";
 import { ingestCompanyFacts, type FactsStepResult } from "./facts-step.ts";
+import { ingestRatios, type RatiosStepResult } from "./ratios-step.ts";
 import type { IngestStore } from "./store.ts";
 import { ingestSubmissions, type SubmissionsStepResult } from "./submissions-step.ts";
 
@@ -20,6 +21,7 @@ export interface IngestResult {
   runId: number;
   submissions: SubmissionsStepResult;
   facts: FactsStepResult;
+  ratios: RatiosStepResult;
 }
 
 export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<IngestResult> {
@@ -39,14 +41,20 @@ export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<Ing
     counts.facts_reported = facts.stats.annualReported;
     counts.facts_restated = facts.stats.restated;
     counts.sec_requests = sec.requestCount;
+    await store.updateRun(runId, { step: "company_facts", counts });
+
+    const ratios = await ingestRatios(store, submissions.companyId, submissions.sectorProfile, facts.facts, now);
+    counts.ratios = ratios.stored;
+    counts.ratios_ok = ratios.ok;
+    counts.ratios_not_applicable = ratios.notApplicable;
     await store.updateRun(runId, {
-      step: "company_facts",
+      step: "ratios",
       counts,
       status: "success",
       finished_at: now(),
       ...(submissions.warnings.length > 0 ? { error: `Warnings: ${submissions.warnings.join("; ")}` } : {}),
     });
-    return { runId, submissions, facts };
+    return { runId, submissions, facts, ratios };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     counts.sec_requests = sec.requestCount;

@@ -5,7 +5,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { checkEnv, type Env } from "../env.ts";
-import type { CompanyRow, FactRow, FilingRow, IngestStore, RunUpdate } from "./store.ts";
+import type { CompanyRow, FactRow, FilingRow, IngestStore, RatioRow, RunUpdate } from "./store.ts";
 
 /** Rows per upsert request: keeps each request small; ~4,000 facts → 8 requests. */
 export const FACT_BATCH_SIZE = 500;
@@ -59,6 +59,19 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
           .from("financial_facts")
           .upsert([...batch], { onConflict: "company_id,concept,unit,period_start,period_end", count: "exact" });
         if (error) fail(`upsert facts (rows ${i + 1}–${i + batch.length})`, error.message);
+        written += count ?? batch.length;
+      }
+      return written;
+    },
+
+    async upsertRatios(rows: readonly RatioRow[]) {
+      let written = 0;
+      for (let i = 0; i < rows.length; i += FACT_BATCH_SIZE) {
+        const batch = rows.slice(i, i + FACT_BATCH_SIZE);
+        const { error, count } = await client
+          .from("ratios")
+          .upsert([...batch], { onConflict: "company_id,fiscal_year,metric", count: "exact" });
+        if (error) fail(`upsert ratios (rows ${i + 1}–${i + batch.length})`, error.message);
         written += count ?? batch.length;
       }
       return written;

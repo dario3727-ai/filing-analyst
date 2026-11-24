@@ -7,6 +7,9 @@
  *    AccountsReceivableNet is only a component, so it comes last.
  *  - Target and Five Below report no receivables; Kroger reports no standard
  *    inventory tag. Those metrics come out "not applicable", not guessed.
+ *  - Older years: fallbacks are added only when they equal the newer tag in
+ *    an overlap year. Target's missing operating-income years are left
+ *    alone: the only nearby tag is pre-tax income, a different number.
  *
  * Values are fractions (0.245 = 24.5%). Formulas are pure and never divide
  * by zero: a non-positive denominator gives "not applicable" with a reason.
@@ -25,6 +28,7 @@ const inputs: readonly InputDef[] = [
       usGaap("Revenues"),
       usGaap("RevenueFromContractWithCustomerExcludingAssessedTax"),
       usGaap("SalesRevenueNet"), // common before 2018
+      usGaap("SalesRevenueGoodsNet"), // Kroger before 2016 (equals its later revenue tag in the overlap year)
       usGaap("RevenueFromContractWithCustomerIncludingAssessedTax"),
     ],
   },
@@ -37,6 +41,7 @@ const inputs: readonly InputDef[] = [
       usGaap("CostOfRevenue"),
       usGaap("CostOfGoodsAndServicesSold"),
       usGaap("CostOfGoodsSold"), // common before 2018
+      usGaap("CostOfMerchandiseSalesBuyingAndOccupancyCosts"), // Gap 2010–2016 (identical to its standard tag where both exist)
       usGaap(
         "CostOfGoodsAndServiceExcludingDepreciationDepletionAndAmortization",
         "Cost of sales excludes depreciation, so it isn't directly comparable with other retailers",

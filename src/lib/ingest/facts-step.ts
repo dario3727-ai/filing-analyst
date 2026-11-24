@@ -4,7 +4,13 @@
  * one request either way and small (decision 2026-11-24).
  */
 import type { SecClient } from "../sec/client.ts";
-import { parseCompanyFacts, selectAnnualFacts, type FactStats, type Restatement } from "../sec/companyfacts.ts";
+import {
+  parseCompanyFacts,
+  selectAnnualFacts,
+  type AnnualFact,
+  type FactStats,
+  type Restatement,
+} from "../sec/companyfacts.ts";
 import { companyFactsUrl } from "../sec/urls.ts";
 import type { IngestStore } from "./store.ts";
 
@@ -15,6 +21,8 @@ export interface FactsStepResult {
   lastYear: number | null;
   /** A few restatements for the run summary; the full count is in stats. */
   sampleRestatements: Restatement[];
+  /** The stored facts, passed on to the ratio step so it needn't read them back. */
+  facts: AnnualFact[];
 }
 
 export async function ingestCompanyFacts(
@@ -53,5 +61,6 @@ export async function ingestCompanyFacts(
     firstYear: years.length > 0 ? Math.min(...years) : null,
     lastYear: years.length > 0 ? Math.max(...years) : null,
     sampleRestatements,
+    facts,
   };
 }

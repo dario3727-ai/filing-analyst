@@ -19,6 +19,8 @@ export interface Fact {
 export interface ResolvedValue {
   value: number;
   tag: string;
+  /** null for point-in-time values. */
+  periodStart: string | null;
   periodEnd: string;
   note?: string;
 }
@@ -38,6 +40,7 @@ export function resolveInput(facts: readonly Fact[], input: InputDef, fiscalYear
     return {
       value: best.value,
       tag: option.tag,
+      periodStart: best.periodStart,
       periodEnd: best.periodEnd,
       ...(option.note === undefined ? {} : { note: option.note }),
     };
