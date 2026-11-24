@@ -99,7 +99,7 @@ Each entry: date, decision, why, alternatives considered. Useful for interviews:
 - **Crash test:** companies without their own profile get the retail profile, labeled "Retail metrics applied to a non-retail company (crash test)" on every result. Adobe: 228 results, all labeled; inventory metrics not applicable.
 - **Storage:** every metric for every fiscal year with any data (about 228 rows per company), with the values, tags and notes used in `ratios.inputs`.
 - **Older-year fallbacks:** added `SalesRevenueGoodsNet` (Kroger before 2016) and `CostOfMerchandiseSalesBuyingAndOccupancyCosts` (Gap 2010–2016), each equal to the newer tag in an overlap year. Not added: pre-tax income as a stand-in for Target's missing operating-income years (a different number).
-- **Spot check (Target fiscal 2024):** all 11 computed ratios match an independent SQL calculation from the raw facts.
+- **Spot check (Target fiscal 2024):** all 11 computed ratios match an independent SQL calculation from the raw facts, and the raw inputs (net sales $106,566M, cost of sales $76,502M, operating income $5,566M, net earnings $4,091M, inventory $12,740M / $11,886M, diluted EPS $8.86 / $8.94) were checked by hand against the 10-K (tgt-20250201.htm) on 2026-11-24 and match.
 - **Alternatives:** always "not applicable" across splits; scaling 53-week years to 52 weeks (over-corrects, since the extra week is usually slow); all "not applicable" for the crash test.
 
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
