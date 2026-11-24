@@ -133,6 +133,14 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
   - 31k–57k words of visible text per filing.
 - **Alternatives:** raw HTML in the repo (16.1 MB working copy, readable on GitHub); downloading fixtures during tests (needs secrets in CI and the network).
 
+## 2026-11-24: Section parser: htmlparser2, "last heading wins"
+- **Library:** `htmlparser2` (v12): fast, forgiving with messy HTML, four small dependencies, and gives a plain tree we walk ourselves. Alternatives: cheerio (jQuery-style API, more dependencies we wouldn't use), node-html-parser (less strict about HTML rules).
+- **Stage 1, blocks:** decode (strict UTF-8, else Windows-1252); drop `<head>`, scripts, styles, the inline-XBRL header and every `display:none` element; one block per paragraph-like element and per table row; pages counted from CSS page breaks; zero-width characters removed (Kroger uses them as spacers: 12,987 blocks → 5,341).
+- **Stage 2, headings:** a candidate is a block of ≤ 250 characters that starts with "Item N". Every test-set filing lists Items 1–16 twice (table of contents, then body), and cross-references sit inside long paragraphs, so the **last** candidate per item is the real heading. A section ends at the next detected item of any number, so tiny items (1B "None", 6 "Reserved") still end the one before. A bare heading ("ITEM 1.") takes its title from the next line. Out-of-order headings produce a warning.
+- **Rejected:** "first candidate followed by enough text" (tiny real items like 1B have 1–22 words after them, so the section before would run on).
+- **Result:** all five target items (1, 1A, 7, 7A, 8) found in all seven fixtures, in order, with correct titles and openings; 26–155 ms per filing.
+- **Page numbers** are counted from page breaks (cover = page 1), so they can differ from the numbers printed in a filing's footer. Revisit in the chunker task if citations should show printed page numbers.
+
 ## 2026-11-24: Open issue: stock splits leave older per-share values unadjusted
 - **Finding:** "latest reported" only adjusts years that a post-split 10-K re-reports (a 10-K covers three years of earnings). Older years keep pre-split values. Walmart (3-for-1, February 2024): fiscal 2020 diluted EPS $4.75 on 2.85B shares, fiscal 2021 $1.62 on 8.4B shares, a false −66% drop. Kroger (2-for-1, 2015): fiscal 2012 $2.77, fiscal 2013 $1.45.
 - **Not a storage bug:** `financial_facts` holds exactly what was reported. The fix belongs where values are compared.

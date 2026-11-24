@@ -16,10 +16,13 @@
     "ingest": "node --env-file-if-exists=.env.local scripts/ingest.ts",
     "profile:coverage": "node --env-file-if-exists=.env.local scripts/profile-coverage.ts",
     "ingest:test-set": "node --env-file-if-exists=.env.local scripts/ingest-test-set.ts",
-    "fixtures:save": "node --env-file-if-exists=.env.local scripts/save-fixtures.ts"
+    "fixtures:save": "node --env-file-if-exists=.env.local scripts/save-fixtures.ts",
+    "inspect:headings": "node scripts/inspect-headings.ts",
+    "inspect:sections": "node scripts/inspect-sections.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
+    "htmlparser2": "^12.0.0",
     "next": "16.4.6",
     "react": "19.3.0",
     "react-dom": "19.3.0"
