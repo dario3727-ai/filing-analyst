@@ -27,7 +27,15 @@ export interface AnswerRow {
   status: Answer["status"];
   answer: string;
   segments: Answer["segments"];
-  citations: { passageId: number; fiscalYear: number; item: string; pageStart: number; pageEnd: number; citedText: string }[];
+  citations: {
+    passageId: number;
+    fiscalYear: number;
+    item: string;
+    heading: string | null;
+    pageStart: number;
+    pageEnd: number;
+    citedText: string;
+  }[];
   passages_sent: { passageId: number; fiscalYear: number; item: string; semanticRank: number | null; keywordRank: number | null; score: number }[];
   numbers_checked: {
     total: number;
@@ -69,7 +77,17 @@ export function toAnswerRow(input: AnswerRecordInput): AnswerRow {
     citations: answer.citedPassageIds.flatMap((id) => {
       const p = byId.get(id);
       return p
-        ? [{ passageId: id, fiscalYear: p.fiscalYear, item: p.item, pageStart: p.pageStart, pageEnd: p.pageEnd, citedText: citedText.get(id) ?? p.content }]
+        ? [
+            {
+              passageId: id,
+              fiscalYear: p.fiscalYear,
+              item: p.item,
+              heading: p.heading,
+              pageStart: p.pageStart,
+              pageEnd: p.pageEnd,
+              citedText: citedText.get(id) ?? p.content,
+            },
+          ]
         : [];
     }),
     passages_sent: passages.map((p) => ({

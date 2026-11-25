@@ -53,7 +53,7 @@ describe("toAnswerRow", () => {
       latency_ms: 2346,
     });
     expect(row.citations).toEqual([
-      { passageId: 11, fiscalYear: 2025, item: "7", pageStart: 34, pageEnd: 35, citedText: "Passage 11 cited." },
+      { passageId: 11, fiscalYear: 2025, item: "7", heading: null, pageStart: 34, pageEnd: 35, citedText: "Passage 11 cited." },
     ]);
     expect(row.passages_sent.map((p) => [p.passageId, p.semanticRank])).toEqual([
       [11, 1],

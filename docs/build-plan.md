@@ -50,7 +50,7 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 - [x] Q&A function: Claude with citations over the top passages (`answerQuestion`; try it with `npm run ask`)
 - [x] Number check against `financial_facts` (`checkFigures`; shown by `npm run ask`)
 - [x] `answers` table and logging (private; `npm run ask` saves every answer)
-- [ ] API route `/api/ask`
+- [x] API route `/api/ask` (validation, per-visitor and daily limits, reuse of identical answers)
 - **Done when:** 10 hand-written questions return correct, cited answers.
 
 ## Milestone 4: frontend (week 6)
