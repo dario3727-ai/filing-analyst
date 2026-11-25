@@ -216,7 +216,8 @@ async function runCase(input, ctx) {
 async function gradeCase(input, run, ref, ctx) {
   const claims = citedClaims(run.response);
   if (claims.length === 0) return combineGrade(input, run.response, null);
-  const msg = await anthropic.messages.create(judgeRequest(input.question, claims, JUDGE_MODEL));
+  const fullAnswer = run.response.segments.map((s) => s.text).join('');
+  const msg = await anthropic.messages.create(judgeRequest(input.question, claims, JUDGE_MODEL, fullAnswer));
   try {
     const { verdicts, reasons } = parseJudge(msg, claims.length);
     return { ...combineGrade(input, run.response, verdicts, reasons), judge_model: msg.model, judge_usage: msg.usage };

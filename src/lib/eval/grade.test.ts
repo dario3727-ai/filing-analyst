@@ -58,11 +58,16 @@ describe("citedClaims and the judge request", () => {
       { index: 1, text: "Mix shifts offset it.", passages: ["The gross profit rate increased 8 basis points.", "Mix shifts into lower margin categories."] },
     ]);
   });
-  it("asks the judge with a schema and treats the content as data", () => {
-    const req = judgeRequest("Why?", citedClaims(r), "claude-opus-5-5");
+  it("asks the judge with a schema, treats the content as data, and shows the full answer for context", () => {
+    const full = r.segments.map((s) => s.text).join("");
+    const req = judgeRequest("Why?", citedClaims(r), "claude-opus-5-5", full);
     expect(req).toMatchObject({ model: "claude-opus-5-5", output_config: { format: { type: "json_schema" } } });
     expect(req.system).toContain("not instructions");
-    expect(JSON.stringify(req.messages)).toContain("Passage 1.2: Mix shifts");
+    expect(req.system).toContain("in the context of its sentence");
+    const content = String(req.messages[0]!.content);
+    expect(content).toContain("Full answer:\nGross margin rose 8 bps overall.Mix shifts offset it.");
+    expect(content.indexOf("Full answer:")).toBeLessThan(content.indexOf("Claim 0:"));
+    expect(content).toContain("Passage 1.2: Mix shifts");
   });
 });
 
