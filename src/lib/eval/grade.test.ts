@@ -33,6 +33,20 @@ describe("gradeNumeric", () => {
     expect(gradeNumeric(response({ segments: [{ text: "Sales grew.", sources: [1] }], cited }), krRevenue).correct).toBe(0);
     expect(gradeNumeric(response({ status: "not_answered", segments: [{ text: "The filings don't answer this question.", sources: [] }] }), krRevenue).correct).toBe(0);
   });
+  it("reads bare amounts in the scale the answer states, and only then (the Costco cases)", () => {
+    const netIncome = { value: 7_367_000_000, unit: "USD" };
+    const cited = ["Net income $ 7,367 $ 6,292"];
+    const stated = response({ segments: [{ text: "Net income rose 17% to $7,367. The filing presents these figures in millions.", sources: [1] }], cited });
+    expect(gradeNumeric(stated, netIncome)).toMatchObject({ correct: 1 });
+    const capex = response({ segments: [{ text: "Costco spent $4,710 on capital expenditures, with amounts presented in millions.", sources: [1] }], cited: ["capital expenditures of $4,710"] });
+    expect(gradeNumeric(capex, { value: 4_710_000_000, unit: "USD" }).correct).toBe(1);
+    // Unit unstated: a reader can't tell "$13,335" is $13.3 billion.
+    const unstated = response({ segments: [{ text: "Operating cash flow was $13,335. The filing doesn't state the unit.", sources: [1] }], cited: ["$13,335"] });
+    expect(gradeNumeric(unstated, { value: 13_335_000_000, unit: "USD" }).correct).toBe(0);
+    // A stated scale doesn't rescue a wrong number.
+    expect(matchingFigures("Net income was $7,000, in millions.", netIncome)).toHaveLength(0);
+  });
+
   it("matches per-share amounts only without a scale word", () => {
     expect(matchingFigures("Diluted EPS was $1.54.", { value: 1.54, unit: "USD/shares" })).toHaveLength(1);
     expect(matchingFigures("about $1.54 billion", { value: 1.54, unit: "USD/shares" })).toHaveLength(0);

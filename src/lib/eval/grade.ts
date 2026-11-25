@@ -41,13 +41,31 @@ function textHasNumber(text: string, form: string): boolean {
   return new RegExp(`(?<![\\d.,])${escaped}(?![\\d]|[.,]\\d)`).test(text);
 }
 
+/**
+ * The scale an answer says its bare amounts are in: "in millions",
+ * "presented in millions", "(in thousands)". Costco's tables print "$7,367"
+ * meaning $7,367 million, and answers that say so are right (eval pilot,
+ * 2026-11-25). An answer that leaves the unit unstated gets no scale: a
+ * reader can't tell "$13,335" is $13.3 billion.
+ */
+export function statedScales(answer: string): number[] {
+  const scales: number[] = [];
+  if (/\bin millions\b|\bmillions of dollars\b/i.test(answer)) scales.push(1e6);
+  if (/\bin thousands\b|\bthousands of dollars\b/i.test(answer)) scales.push(1e3);
+  return scales;
+}
+
 /** Figures in the answer that state the expected value within their own rounding. */
 export function matchingFigures(answer: string, expected: { value: number; unit: string }): Figure[] {
   const target = Math.abs(expected.value);
+  const close = (value: number, tolerance: number) => Math.abs(value - target) <= tolerance + 1e-9 * Math.max(1, target);
+  const scales = statedScales(answer);
   return extractFigures(answer).filter((f) => {
     if (f.kind !== "usd") return false;
-    if (expected.unit === "USD/shares" ? !f.unscaled : f.unscaled && target >= 1e6) return false;
-    return Math.abs(f.value - target) <= f.tolerance + 1e-9 * Math.max(1, target);
+    if (expected.unit === "USD/shares") return f.unscaled && close(f.value, f.tolerance);
+    if (!f.unscaled || target < 1e6) return close(f.value, f.tolerance);
+    // A bare amount like "$7,367" counts only in the scale the answer states.
+    return scales.some((s) => close(f.value * s, f.tolerance * s));
   });
 }
 
