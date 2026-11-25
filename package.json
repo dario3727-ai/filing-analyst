@@ -23,7 +23,8 @@
     "coverage": "node --env-file-if-exists=.env.local scripts/coverage.ts",
     "search": "node --env-file-if-exists=.env.local scripts/search.ts",
     "ask": "node --env-file-if-exists=.env.local scripts/ask.ts",
-    "check:questions": "node --env-file-if-exists=.env.local scripts/check-questions.ts"
+    "check:questions": "node --env-file-if-exists=.env.local scripts/check-questions.ts",
+    "risks": "node --env-file-if-exists=.env.local scripts/risks.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",

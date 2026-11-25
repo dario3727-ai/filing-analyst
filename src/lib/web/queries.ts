@@ -11,6 +11,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Fact } from "../../metrics/resolve.ts";
 import type { RatioRow, RedFlagRow } from "./report.ts";
+import type { RiskChangeRecord } from "./risk-view.ts";
 import type { CompanyOption } from "./search.ts";
 import { resolveRange, selectableYears, type YearRange } from "./years.ts";
 
@@ -92,6 +93,8 @@ export interface ReportData {
   /** Earliest and latest fiscal year with any stored XBRL fact. */
   factYears: { first: number; last: number } | null;
   totalFacts: number;
+  /** Risk Factors comparisons whose later year is in the range. */
+  riskChanges: RiskChangeRecord[];
 }
 
 /** Facts in the range, paged because the API returns at most 1,000 rows per request. */
@@ -152,7 +155,7 @@ export async function loadReport(ticker: string, from: unknown, to: unknown): Pr
 
   const inRange = (f: { fiscal_year: number }) => range !== null && f.fiscal_year >= range.from && f.fiscal_year <= range.to;
 
-  const [facts, ratios, redFlags, total, first, last, passages] = await Promise.all([
+  const [facts, ratios, redFlags, total, first, last, passages, riskChanges] = await Promise.all([
     range ? factsInRange(client, company.id, range) : Promise.resolve([]),
     range
       ? client
@@ -176,6 +179,18 @@ export async function loadReport(ticker: string, from: unknown, to: unknown): Pr
     yearEdge(true),
     yearEdge(false),
     Promise.all(filingRows.map((f) => (inRange(f) ? countPassages(f.id).then((r) => r.count ?? 0) : Promise.resolve(null)))),
+    range
+      ? client
+          .from("risk_changes")
+          .select(
+            "from_year, to_year, position, kind, category, old_title, new_title, old_text, new_text, diff, words_added, words_removed, numbers_only, summary, materiality",
+          )
+          .eq("company_id", company.id)
+          .gte("to_year", range.from)
+          .lte("to_year", range.to)
+          .order("position")
+          .then((r) => check(r, "risk changes") as unknown as RiskChangeRecord[])
+      : Promise.resolve([]),
   ]);
 
   const firstYear = (first.data as { fiscal_year: number }[] | null)?.[0]?.fiscal_year;
@@ -191,6 +206,7 @@ export async function loadReport(ticker: string, from: unknown, to: unknown): Pr
     redFlags,
     factYears: firstYear !== undefined && lastYear !== undefined ? { first: firstYear, last: lastYear } : null,
     totalFacts: total.count ?? 0,
+    riskChanges,
   };
 }
 

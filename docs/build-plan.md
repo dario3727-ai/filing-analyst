@@ -66,8 +66,8 @@ Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages 
 - **Milestone 4 completed 2026-11-24:** search and year picker, Overview, Ask with the citation side panel, and the What changed placeholder all work with real data; checked on desktop and at phone width.
 
 ## Milestone 5: risk changes and evals (week 7)
-- [ ] Risk Factors comparison with Claude (Batch API) → `risk_changes`
-- [ ] What changed screen
+- [x] Risk Factors comparison with Claude (Batch API) → `risk_changes` (`npm run risks`: 14 year pairs, 347 rows, 260 Haiku summaries)
+- [x] What changed screen
 - [ ] Eval set: 50–100 questions, many generated from XBRL, some the filing can't answer
 - [ ] `npm run eval`: scores number accuracy, citation support and admitting unknowns; writes `eval_results`
 - [ ] Compare Haiku and Sonnet scores

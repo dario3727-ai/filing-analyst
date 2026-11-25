@@ -7,6 +7,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 import { AskPanel } from "@/components/ask-panel";
+import { RiskChanges } from "@/components/risk-changes";
 import { SearchForm } from "@/components/search-form";
 import { getProfile } from "@/metrics/profiles";
 import { retailProfile } from "@/metrics/profiles/retail";
@@ -286,8 +287,11 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
         />
       </Section>
 
-      <Section title="What changed" source="Not built yet · milestone 5 (Risk Factors compared year over year)">
-        <p className="text-sm text-gray-600">Will list risks added, removed and reworded between consecutive 10-Ks.</p>
+      <Section
+        title="What changed"
+        source="Milestone 5 · Risk Factors compared year over year: code finds the changes → risk_changes; Claude (Haiku, Batch API) summarizes and rates them"
+      >
+        <RiskChanges rows={report.riskChanges} />
       </Section>
 
       <Section

@@ -106,6 +106,7 @@ npm run coverage                                       # which 10-K sections wer
 npm run search -- --ticker WMT --q "Why did gross margin change?"   # hybrid search from the terminal
 npm run ask -- --ticker WMT --q "Why did gross margin change?"      # cited answer (Haiku; add --model sonnet)
 npm run check:questions                                # milestone 3 check: 10 questions on Sonnet, writes docs/checks/
+npm run risks                                          # Risk Factors year over year → risk_changes (Haiku, one Message Batch)
 npm run dev                                            # http://localhost:3000 (search a loaded company)
 ```
 
