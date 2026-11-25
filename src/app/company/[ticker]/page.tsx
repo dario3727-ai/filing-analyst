@@ -231,7 +231,8 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
 
       <Section title="10-K filings and sections" source="Milestone 2 · documents in Storage → parser → sections, chunks">
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          {/* Minimum width: on phones the table scrolls sideways instead of squeezing section titles into a sliver. */}
+          <table className="w-full min-w-[44rem] border-collapse text-sm">
             <thead>
               <tr>
                 <th className={th}>FY</th>
@@ -296,7 +297,7 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
         <details>
           <summary className="cursor-pointer text-sm">Show all</summary>
           <div className="overflow-x-auto">
-            <table className="mt-2 w-full border-collapse text-xs">
+            <table className="mt-2 w-full min-w-[36rem] border-collapse text-xs">
               <thead>
                 <tr>
                   <th className={th}>Used</th>

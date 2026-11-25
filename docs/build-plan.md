@@ -55,12 +55,15 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 - **Milestone 3 completed 2026-11-24:** `npm run check:questions` gives 10 of 10 correct, cited answers on Sonnet (report in `docs/checks/milestone-3-questions.md`), after fixing running headers in the parser and four retrieval issues the check exposed (see decisions).
 
 ## Milestone 4: frontend (week 6)
-- [ ] Design pass over the milestone 2.5 pages: company search and year picker styled from the mockup
-- [ ] Overview: key metrics, revenue chart for the selected years, ratio table, red flags (styled; data already wired in 2.5)
+Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages are the design.
+- [x] Company search and year-range picker (built in milestone 2.5)
+- [x] Overview: key metrics, ratios with notes, red flags, filings (built in milestone 2.5; no separate styling pass)
 - [x] Ask: question box, answer with a book icon on each citation that opens the cited 10-K section in a collapsible right-side panel, scrolled to and highlighting the passage (decisions 2026-11-24; checked on desktop and phone width)
-- [ ] What changed: placeholder until milestone 5 fills it
-- [ ] Layout works on a phone
-- **Done when:** the three screens match the mockup's structure using real data.
+- [x] What changed: placeholder until milestone 5 fills it
+- [x] Layout works on a phone (checked at 375 px: no sideways page scroll; the filings and XBRL-facts tables scroll inside their own box)
+- ~~Design pass from the mockup~~ dropped 2026-11-24 (the user prefers the bare-bones look)
+- **Done when:** the three screens work with real data in the bare-bones layout, and every page is usable at phone width.
+- **Milestone 4 completed 2026-11-24:** search and year picker, Overview, Ask with the citation side panel, and the What changed placeholder all work with real data; checked on desktop and at phone width.
 
 ## Milestone 5: risk changes and evals (week 7)
 - [ ] Risk Factors comparison with Claude (Batch API) → `risk_changes`

@@ -274,3 +274,8 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Shown plainly:** status notes for partly answered, not answered, declined and cut-off answers; the number check line with any unverified figures named in red; the model, and whether an earlier identical answer was reused. `**bold**` labels in answers render as bold (pure helper `splitBold`).
 - **Kept bare-bones** to match the milestone 2.5 pages; the mockup-based design pass is the user's call.
 - **Alternatives:** opening sec.gov in a new tab (no highlight, leaves the app); a popover with only the cited passage (no surrounding context); fetching the section straight from the browser with supabase-js (works with RLS, but a route keeps the browser free of database query code).
+
+## 2026-11-24: Keep the bare-bones look; no mockup design pass
+- **Decision:** the plain milestone 2.5 pages are the design. The mockup-based design pass and the separate Overview styling task are dropped from milestone 4; its "done when" becomes: the three screens work with real data in the bare-bones layout and every page is usable at phone width.
+- **Why:** the user prefers it after using it: it shows exactly what the tool has, with nothing decorative between the reader and the numbers and citations.
+- **Alternatives:** applying the mockup's styling (the original plan).
