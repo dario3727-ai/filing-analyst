@@ -47,5 +47,8 @@ for (const company of TEST_SET) {
 }
 
 for (const row of rows) console.log(row);
-console.log(`\n${TEST_SET.length - failures}/${TEST_SET.length} loaded, ${sec.requestCount} SEC requests.`);
+const voyageSummary = voyage
+  ? `, ${voyage.requestCount} Voyage requests (${voyage.tokenCount.toLocaleString("en-US")} tokens)`
+  : "; embeddings skipped (VOYAGE_API_KEY not set)";
+console.log(`\n${TEST_SET.length - failures}/${TEST_SET.length} loaded, ${sec.requestCount} SEC requests${voyageSummary}.`);
 if (failures > 0) process.exitCode = 1;
