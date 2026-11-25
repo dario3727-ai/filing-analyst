@@ -57,7 +57,7 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 ## Milestone 4: frontend (week 6)
 - [ ] Design pass over the milestone 2.5 pages: company search and year picker styled from the mockup
 - [ ] Overview: key metrics, revenue chart for the selected years, ratio table, red flags (styled; data already wired in 2.5)
-- [ ] Ask: question box, answer with a book icon on each citation that opens the cited 10-K section in a collapsible right-side panel, scrolled to and highlighting the passage (decisions 2026-11-24)
+- [x] Ask: question box, answer with a book icon on each citation that opens the cited 10-K section in a collapsible right-side panel, scrolled to and highlighting the passage (decisions 2026-11-24; checked on desktop and phone width)
 - [ ] What changed: placeholder until milestone 5 fills it
 - [ ] Layout works on a phone
 - **Done when:** the three screens match the mockup's structure using real data.

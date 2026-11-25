@@ -6,6 +6,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
+import { AskPanel } from "@/components/ask-panel";
 import { SearchForm } from "@/components/search-form";
 import { getProfile } from "@/metrics/profiles";
 import { retailProfile } from "@/metrics/profiles/retail";
@@ -274,10 +275,14 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
         </div>
       </Section>
 
-      <Section title="Ask the filings" source="Not built yet · milestone 3 (embeddings, hybrid search, Claude with citations)">
-        <p className="text-sm text-gray-600">
-          Will answer questions from the {passages.toLocaleString("en-US")} passages stored for these years, citing each one.
-        </p>
+      <Section title="Ask the filings" source="Milestone 3 · POST /api/ask: hybrid search → Claude with citations → number check against XBRL">
+        <AskPanel
+          ticker={report.company.ticker}
+          companyName={report.company.name}
+          fromYear={years[0]!}
+          toYear={years.at(-1)!}
+          passageCount={passages}
+        />
       </Section>
 
       <Section title="What changed" source="Not built yet · milestone 5 (Risk Factors compared year over year)">
