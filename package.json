@@ -21,9 +21,11 @@
     "inspect:sections": "node scripts/inspect-sections.ts",
     "inspect:chunks": "node scripts/inspect-chunks.ts",
     "coverage": "node --env-file-if-exists=.env.local scripts/coverage.ts",
-    "search": "node --env-file-if-exists=.env.local scripts/search.ts"
+    "search": "node --env-file-if-exists=.env.local scripts/search.ts",
+    "ask": "node --env-file-if-exists=.env.local scripts/ask.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@supabase/supabase-js": "^2.119.2",
     "htmlparser2": "^12.0.0",
     "next": "16.4.6",

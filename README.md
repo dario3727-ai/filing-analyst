@@ -104,6 +104,7 @@ npm run ingest:test-set                                # all seven (default wind
 npm run profile:coverage                               # which XBRL tag fed each input
 npm run coverage                                       # which 10-K sections were found, per filing
 npm run search -- --ticker WMT --q "Why did gross margin change?"   # hybrid search from the terminal
+npm run ask -- --ticker WMT --q "Why did gross margin change?"      # cited answer (Haiku; add --model sonnet)
 npm run dev                                            # http://localhost:3000 (search a loaded company)
 ```
 

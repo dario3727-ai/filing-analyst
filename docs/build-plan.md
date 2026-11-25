@@ -47,7 +47,7 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 ## Milestone 3: search and Q&A (week 5)
 - [x] Voyage embeddings for all chunks, in batches (4,874 passages in 21 filings; decisions 2026-11-24)
 - [x] Hybrid search as a Postgres function (vector + full-text), filtered by company (`search_chunks`; try it with `npm run search`)
-- [ ] Q&A function: Claude with citations over the top passages
+- [x] Q&A function: Claude with citations over the top passages (`answerQuestion`; try it with `npm run ask`)
 - [ ] Number check against `financial_facts`
 - [ ] `answers` table and logging
 - [ ] API route `/api/ask`
