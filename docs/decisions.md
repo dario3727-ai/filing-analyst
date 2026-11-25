@@ -182,3 +182,21 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Year slider:** two handles over the company's downloaded 10-K years only. If the downloaded years have a gap (e.g. 2020, 2021, 2023), the slider covers only the latest unbroken run, so a range with a missing year can't be picked.
 - **Data access:** pages read Supabase on the server with the publishable (read-only) key; the secret key is never used by the web app.
 - **Alternatives:** keeping the original order (frontend after Q&A); building the full milestone 4 design first.
+
+## 2026-11-24: SG&A, buybacks, dividends and long-term debt shown as display-only inputs
+- **Decision:** four inputs added to the retail profile and shown in Key financials, with no metric built on them yet (`displayOnly: true`); the XBRL tag column is removed from the page (the tag shows on hover).
+- **Tag orders (fiscal 2019–2025, all seven companies):** SG&A `SellingGeneralAndAdministrativeExpense`, then `OperatingExpenses` with a note (Gap reports one operating-expenses line; Adobe's includes R&D). Kroger has no standard SG&A tag, so it shows "—". Buybacks `PaymentsForRepurchaseOfCommonStock` for all seven. Dividends: common-stock dividends, then all dividends (Gap; Costco before 2021); Five Below and Adobe pay none. Long-term debt: noncurrent first, then Target's tag including finance leases, then Adobe's total including the current portion, each with a note.
+- **Why display-only:** which ratios to build from them (SG&A as a share of revenue, shareholder payout, debt to assets...) is a separate choice.
+- **Alternatives:** adding metrics at the same time; summing Adobe's sales-and-marketing and G&A lines (the profile has no sums, and Adobe is only the crash test).
+
+## 2026-11-24: Citations open the 10-K in a side panel
+- **Decision:** each cited claim in an answer gets a small book icon. Clicking it opens a panel on the right that shows the whole 10-K section the passage comes from, rebuilt from the stored passages, scrolled to the cited passage and highlighted, with the page numbers and a link to the original filing on sec.gov. The panel can be collapsed.
+- **Why rebuild from passages:** we already store every passage of Items 1, 1A, 7, 7A and 8 in order, with pages, so the panel needs no new data and the highlight is exact (the citation points at a passage id). Showing the SEC's own HTML in a frame would need locating the passage inside raw HTML, and sec.gov may refuse to be framed.
+- **Alternatives:** a popup with just the cited passage (no context); linking straight to sec.gov (no highlight, leaves the app).
+
+## 2026-11-24: Embeddings with Voyage voyage-4, 1024 dimensions
+- **Model:** `voyage-4` (Voyage docs checked 2026-11-24): 1024 dimensions by default, matching `chunks.embedding vector(1024)`; $0.06 per million tokens with the first 200M tokens free per account. All 4,874 passages are about 1M tokens, so embedding them uses ~0.5% of the free tokens.
+- **Text embedded:** each passage prefixed with its section title and subheading (e.g. "Item 7. Management's Discussion… — Gross profit rate"), so a passage that never names its topic is still found by it. `input_type` is "document" for passages and "query" for questions.
+- **Requests:** at most 128 passages or ~50,000 estimated tokens per request (Voyage allows 1,000 inputs and 320K tokens); retries with backoff on 429 and 5xx; a hard cap on requests per run. Voyage's docs don't state limits for accounts without a payment method (they're known to be very low); with a card the limit is 2,000 requests and 8M tokens a minute, and the free tokens still apply.
+- **Where it runs:** step 7 of `npm run ingest`, only for passages without an embedding; a filing becomes `embedded` when all its passages have one. Re-parsing deletes the passages, so they're embedded again.
+- **Alternatives:** `voyage-4-lite` (cheaper, a little less accurate; cost isn't a constraint at this size); `voyage-finance-2` (finance-tuned, but older, no free tokens beyond 50M, fixed 1024); the Batch API (33% cheaper but free tokens don't apply).

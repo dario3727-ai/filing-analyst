@@ -6,6 +6,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { checkEnv, type Env } from "../env.ts";
 import type {
+  ChunkToEmbed,
   CompanyRow,
   FactRow,
   FilingRow,
@@ -20,6 +21,11 @@ export const RAW_FILINGS_BUCKET = "raw-filings";
 
 /** Rows per upsert request: keeps each request small; ~4,000 facts → 8 requests. */
 export const FACT_BATCH_SIZE = 500;
+
+/** Pages of 1,000 passages read per filing at most (a 10-K has ~300). */
+const MAX_CHUNK_PAGES = 5;
+/** Embedding updates sent at the same time. */
+const EMBEDDING_UPDATE_CONCURRENCY = 8;
 
 function fail(operation: string, message: string): never {
   throw new Error(`Supabase ${operation} failed: ${message}`);
@@ -196,6 +202,59 @@ export function createSupabaseStore(client: SupabaseClient): IngestStore {
     async markParsed(filingId: number) {
       const { error } = await client.from("filings").update({ status: "parsed" }).eq("id", filingId);
       if (error) fail("mark filing parsed", error.message);
+    },
+
+    async getChunksToEmbed(filingId: number) {
+      const out: ChunkToEmbed[] = [];
+      // Paged: the API returns at most 1,000 rows per request. A 10-K has ~300 passages.
+      for (let page = 0; page < MAX_CHUNK_PAGES; page++) {
+        const from = page * 1000;
+        const { data, error } = await client
+          .from("chunks")
+          .select("id, item, heading, content, token_count, sections(title)")
+          .eq("filing_id", filingId)
+          .is("embedding", null)
+          .order("id")
+          .range(from, from + 999);
+        if (error) fail("get passages to embed", error.message);
+        for (const r of data ?? []) {
+          const section = r.sections as unknown as { title?: unknown } | null;
+          out.push({
+            id: Number(r.id),
+            item: String(r.item),
+            section_title: String(section?.title ?? ""),
+            heading: r.heading === null ? null : String(r.heading),
+            content: String(r.content),
+            token_count: Number(r.token_count),
+          });
+        }
+        if ((data ?? []).length < 1000) return out;
+      }
+      fail("get passages to embed", `more than ${MAX_CHUNK_PAGES * 1000} passages in one filing`);
+    },
+
+    async saveEmbeddings(rows, model) {
+      // One update per passage, a few at a time. pgvector reads the "[0.1,0.2,...]" text form.
+      let saved = 0;
+      for (let i = 0; i < rows.length; i += EMBEDDING_UPDATE_CONCURRENCY) {
+        const group = rows.slice(i, i + EMBEDDING_UPDATE_CONCURRENCY);
+        const results = await Promise.all(
+          group.map((row) =>
+            client
+              .from("chunks")
+              .update({ embedding: JSON.stringify(row.embedding), embedding_model: model })
+              .eq("id", row.id),
+          ),
+        );
+        for (const { error } of results) if (error) fail("save embedding", error.message);
+        saved += group.length;
+      }
+      return saved;
+    },
+
+    async markEmbedded(filingId: number) {
+      const { error } = await client.from("filings").update({ status: "embedded" }).eq("id", filingId);
+      if (error) fail("mark filing embedded", error.message);
     },
   };
 }

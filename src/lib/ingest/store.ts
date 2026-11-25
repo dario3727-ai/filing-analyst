@@ -90,6 +90,16 @@ export interface SectionWithChunks {
   chunks: ChunkRow[];
 }
 
+/** A stored passage that has no embedding yet. */
+export interface ChunkToEmbed {
+  id: number;
+  item: string;
+  section_title: string;
+  heading: string | null;
+  content: string;
+  token_count: number;
+}
+
 export type RunStatus = "running" | "success" | "failed";
 
 export interface RunUpdate {
@@ -140,4 +150,11 @@ export interface IngestStore {
     sections: readonly SectionWithChunks[],
   ): Promise<number>;
   markParsed(filingId: number): Promise<void>;
+
+  // --- embeddings ---
+  /** A filing's passages whose embedding is still empty, in passage order. */
+  getChunksToEmbed(filingId: number): Promise<ChunkToEmbed[]>;
+  /** Saves one embedding per passage id, with the model that made it; returns how many were saved. */
+  saveEmbeddings(rows: readonly { id: number; embedding: readonly number[] }[], model: string): Promise<number>;
+  markEmbedded(filingId: number): Promise<void>;
 }

@@ -121,6 +121,7 @@ What `npm run ingest` does for one company, logged in `ingestion_runs`:
 4. **Red flags:** five calibrated rules → `red_flags`.
 5. **Documents:** each 10-K in the window, saved once as raw HTML to the `raw-filings` bucket (`{TICKER}/{fiscal_year}.htm`); later runs skip it.
 6. **Parse:** Items 1, 1A, 7, 7A and 8 found in each saved 10-K and cut into ~300-token passages → `sections`, `chunks`. Already-parsed filings are skipped; add `--reparse` after a parser change.
+7. **Embed:** each passage without an embedding is sent to Voyage (`voyage-4`, 1024 dimensions) with its section title as a prefix; skipped with a warning if `VOYAGE_API_KEY` isn't set.
 
 ## Known limitations
 

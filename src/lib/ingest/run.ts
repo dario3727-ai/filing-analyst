@@ -2,9 +2,11 @@
  * One ingest run for one company, logged in ingestion_runs from start to
  * finish, including failures. `step` records the last step completed, so a
  * failed run shows how far it got.
- * Steps: submissions → company facts → ratios → red flags → documents → parse.
+ * Steps: submissions → company facts → ratios → red flags → documents → parse → embed.
  */
 import type { SecClient } from "../sec/client.ts";
+import type { VoyageClient } from "../voyage/client.ts";
+import { ingestEmbeddings, type EmbedStepResult } from "./embed-step.ts";
 import type { IngestArgs } from "./args.ts";
 import { ingestDocuments, type DocumentsStepResult } from "./documents-step.ts";
 import { ingestParse, type ParseStepResult } from "./parse-step.ts";
@@ -17,6 +19,8 @@ import { ingestSubmissions, type SubmissionsStepResult } from "./submissions-ste
 export interface IngestDeps {
   sec: SecClient;
   store: IngestStore;
+  /** Voyage client for step 7; null or missing → the step is skipped with a warning. */
+  voyage?: VoyageClient | null;
   /** Current time as ISO text; injectable for tests. */
   now?: () => string;
 }
@@ -29,6 +33,7 @@ export interface IngestResult {
   redFlags: RedFlagsStepResult;
   documents: DocumentsStepResult;
   parse: ParseStepResult;
+  embed: EmbedStepResult;
 }
 
 export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<IngestResult> {
@@ -79,15 +84,24 @@ export async function runIngest(args: IngestArgs, deps: IngestDeps): Promise<Ing
     counts.filings_already_parsed = parse.skipped;
     counts.sections = parse.sections;
     counts.chunks = parse.chunks;
-    const warnings = [...submissions.warnings, ...parse.warnings];
+    await store.updateRun(runId, { step: "parse", counts });
+
+    const windowYears: number[] = [];
+    for (let y = args.fromYear; y <= args.toYear; y++) windowYears.push(y);
+    const embed = await ingestEmbeddings(store, deps.voyage ?? null, submissions.companyId, windowYears);
+    counts.passages_embedded = embed.embedded;
+    counts.filings_embedded = embed.filingsEmbedded;
+    counts.voyage_requests = embed.requests;
+    counts.voyage_tokens = embed.tokens;
+    const warnings = [...submissions.warnings, ...parse.warnings, ...embed.warnings];
     await store.updateRun(runId, {
-      step: "parse",
+      step: "embed",
       counts,
       status: "success",
       finished_at: now(),
       ...(warnings.length > 0 ? { error: `Warnings: ${warnings.join("; ")}` } : {}),
     });
-    return { runId, submissions, facts, ratios, redFlags, documents, parse };
+    return { runId, submissions, facts, ratios, redFlags, documents, parse, embed };
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     counts.sec_requests = sec.requestCount;

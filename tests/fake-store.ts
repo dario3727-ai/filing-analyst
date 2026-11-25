@@ -1,4 +1,5 @@
 import type {
+  ChunkToEmbed,
   CompanyRow,
   FactRow,
   FilingRow,
@@ -21,6 +22,8 @@ export function createFakeStore(): IngestStore & {
   ratios: Map<string, RatioRow>;
   redFlags: RedFlagRow[];
   runs: Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>;
+  /** Saved embeddings by passage id, with their model. */
+  embeddings: Map<number, { embedding: readonly number[]; model: string }>;
 } {
   let redFlags: RedFlagRow[] = [];
   const companies = new Map<string, CompanyRow & { id: number }>();
@@ -36,6 +39,11 @@ export function createFakeStore(): IngestStore & {
   const facts = new Map<string, FactRow>();
   const ratios = new Map<string, RatioRow>();
   const runs = new Map<number, { ticker: string; params: Record<string, unknown> } & RunUpdate>();
+  const embeddings = new Map<number, { embedding: readonly number[]; model: string }>();
+  // Fake passage ids: filing id, section position and passage index packed into one number.
+  const chunkId = (filingId: number, sectionIndex: number, chunkIndex: number) =>
+    filingId * 1_000_000 + sectionIndex * 10_000 + chunkIndex;
+  const filingOfChunk = (id: number) => Math.floor(id / 1_000_000);
   let nextCompanyId = 1;
   let nextRunId = 1;
 
@@ -50,6 +58,7 @@ export function createFakeStore(): IngestStore & {
       return redFlags;
     },
     runs,
+    embeddings,
     async startRun(ticker, params) {
       const id = nextRunId++;
       runs.set(id, { ticker, params, status: "running" });
@@ -116,12 +125,40 @@ export function createFakeStore(): IngestStore & {
       return bytes;
     },
     async replaceFilingText(filing, sections) {
+      // Like the real cascade: replacing passages drops their embeddings.
+      for (const id of [...embeddings.keys()]) if (filingOfChunk(id) === filing.id) embeddings.delete(id);
       filingText.set(filing.id, sections.map((s) => ({ ...s, chunks: [...s.chunks] })));
       return sections.reduce((n, s) => n + s.chunks.length, 0);
     },
     async markParsed(filingId) {
       for (const [accession, f] of filings) {
         if (idFor(accession) === filingId) filings.set(accession, { ...f, status: "parsed" });
+      }
+    },
+    async getChunksToEmbed(filingId) {
+      const sections = filingText.get(filingId) ?? [];
+      return sections.flatMap((s, si) =>
+        s.chunks
+          .map(
+            (c): ChunkToEmbed => ({
+              id: chunkId(filingId, si, c.chunk_index),
+              item: s.item,
+              section_title: s.title,
+              heading: c.heading,
+              content: c.content,
+              token_count: c.token_count,
+            }),
+          )
+          .filter((c) => !embeddings.has(c.id)),
+      );
+    },
+    async saveEmbeddings(rows, model) {
+      for (const row of rows) embeddings.set(row.id, { embedding: row.embedding, model });
+      return rows.length;
+    },
+    async markEmbedded(filingId) {
+      for (const [accession, f] of filings) {
+        if (idFor(accession) === filingId) filings.set(accession, { ...f, status: "embedded" });
       }
     },
   };

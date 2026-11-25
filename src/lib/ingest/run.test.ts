@@ -82,7 +82,7 @@ describe("runIngest on real Walmart data", () => {
       ticker: "WMT",
       params: { from: 2023, to: 2025 },
       status: "success",
-      step: "parse",
+      step: "embed",
       company_id: result.submissions.companyId,
       counts: {
         filings: 3,
@@ -94,9 +94,13 @@ describe("runIngest on real Walmart data", () => {
         red_flags: result.redFlags.stored,
         documents_downloaded: 3,
         filings_parsed: 3,
+        passages_embedded: 0,
       },
       finished_at: "T",
     });
+    // No Voyage client in this test: embedding is skipped with a warning, not a failure.
+    expect(result.embed).toMatchObject({ skipped: true, embedded: 0 });
+    expect(store.runs.get(result.runId)?.error).toContain("VOYAGE_API_KEY is not set");
     // The stand-in documents have no Item headings: the run warns rather than fails.
     expect(result.parse.warnings).toContain("FY2025: Item 1, Item 1A, Item 7, Item 7A, Item 8 not found");
   });

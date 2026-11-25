@@ -4,16 +4,20 @@ import { parseIngestArgs } from "../src/lib/ingest/args.ts";
 import { runIngest } from "../src/lib/ingest/run.ts";
 import { createSupabaseStoreFromEnv } from "../src/lib/ingest/supabase-store.ts";
 import { createSecClientFromEnv } from "../src/lib/sec/client.ts";
+import { createVoyageClientFromEnv } from "../src/lib/voyage/client.ts";
 
 try {
   const args = parseIngestArgs(process.argv.slice(2), new Date().getFullYear());
   const sec = createSecClientFromEnv(process.env, { maxRequests: 50 });
   const store = createSupabaseStoreFromEnv(process.env);
+  // Hard cap: a 10-K is ~300 passages, 3 requests; plus retries.
+  const voyage = createVoyageClientFromEnv(process.env, { maxRequests: 60 });
 
   console.log(`Ingesting ${args.ticker}, fiscal years ${args.fromYear}–${args.toYear}...`);
-  const { runId, submissions: s, facts: f, ratios: r, redFlags: rf, documents: d, parse: p } = await runIngest(args, {
+  const { runId, submissions: s, facts: f, ratios: r, redFlags: rf, documents: d, parse: p, embed: e } = await runIngest(args, {
     sec,
     store,
+    voyage,
   });
 
   console.log(`  company: ${s.name} (CIK ${s.cik}), profile: ${s.sectorProfile}`);
@@ -47,7 +51,13 @@ try {
   console.log(
     `  text: ${p.parsed} filing(s) parsed into ${p.sections} sections and ${p.chunks} passages; ${p.skipped} already parsed`,
   );
-  for (const w of [...s.warnings, ...p.warnings]) console.log(`  warning: ${w}`);
+  if (!e.skipped) {
+    console.log(
+      `  embeddings: ${e.embedded} passages in ${e.filingsEmbedded} filing(s), ${e.filingsAlreadyEmbedded} already done; ` +
+        `${e.requests} Voyage requests, ${e.tokens.toLocaleString("en-US")} tokens`,
+    );
+  }
+  for (const w of [...s.warnings, ...p.warnings, ...e.warnings]) console.log(`  warning: ${w}`);
   console.log(`Done. Run #${runId}, ${sec.requestCount} SEC requests.`);
 } catch (error) {
   console.error(`Ingest failed: ${error instanceof Error ? error.message : String(error)}`);
