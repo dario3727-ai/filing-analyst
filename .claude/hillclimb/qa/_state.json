@@ -52,5 +52,5 @@
     "src/lib/search/hybrid.ts",
     "src/lib/search/retrieve.ts"
   ],
-  "harness_sha": "6c15334682c186eb62422edfcfd39a02dcca275b4eace6389b553c4b1def3f72"
+  "harness_sha": "610f485c244282d1fcd54bed270be2c4fa0743cf0f79d4805d08ac316a731c75"
 }

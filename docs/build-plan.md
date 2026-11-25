@@ -68,9 +68,9 @@ Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages 
 ## Milestone 5: risk changes and evals (week 7)
 - [x] Risk Factors comparison with Claude (Batch API) → `risk_changes` (`npm run risks`: 14 year pairs, 347 rows, 260 Haiku summaries)
 - [x] What changed screen
-- [ ] Eval set: 50–100 questions, many generated from XBRL, some the filing can't answer
-- [ ] `npm run eval`: scores number accuracy, citation support and admitting unknowns; writes `eval_results`
-- [ ] Compare Haiku and Sonnet scores
+- [x] Eval set: 50–100 questions, many generated from XBRL, some the filing can't answer (58 cases, `eval/qa/cases.md`, approved 2026-11-25)
+- [x] `npm run eval`: scores number accuracy, citation support and admitting unknowns; writes results files and a report under `.claude/hillclimb/qa/` (the planned `eval_results` table was dropped, decisions 2026-11-25)
+- [x] Compare Haiku and Sonnet scores (Sonnet 79.3%, Haiku 75.9%: within the noise; Haiku 15× cheaper)
 - **Done when:** eval scores are recorded and in the README.
 
 ## Milestone 6: ship (week 8)

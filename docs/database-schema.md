@@ -168,7 +168,7 @@ Private: no access for the browser key; written and read with the secret key onl
 | latency_ms | int | time of the Claude call |
 | created_at | timestamptz | |
 
-### eval_results
+### eval_results (not built: eval results live in files under `.claude/hillclimb/qa/`, decisions 2026-11-25)
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | bigint, PK | |

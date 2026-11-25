@@ -107,6 +107,8 @@ npm run search -- --ticker WMT --q "Why did gross margin change?"   # hybrid sea
 npm run ask -- --ticker WMT --q "Why did gross margin change?"      # cited answer (Haiku; add --model sonnet)
 npm run check:questions                                # milestone 3 check: 10 questions on Sonnet, writes docs/checks/
 npm run risks                                          # Risk Factors year over year → risk_changes (Haiku, one Message Batch)
+npm run eval:cases                                     # regenerate the eval cases from XBRL
+npm run eval -- --flow .claude/hillclimb/qa --variant baseline --model claude-sonnet-5-5   # run the eval (first run: add --approve-harness)
 npm run dev                                            # http://localhost:3000 (search a loaded company)
 ```
 
@@ -126,6 +128,24 @@ What `npm run ingest` does for one company, logged in `ingestion_runs`:
 5. **Documents:** each 10-K in the window, saved once as raw HTML to the `raw-filings` bucket (`{TICKER}/{fiscal_year}.htm`); later runs skip it.
 6. **Parse:** Items 1, 1A, 7, 7A and 8 found in each saved 10-K and cut into ~300-token passages → `sections`, `chunks`. Already-parsed filings are skipped; add `--reparse` after a parser change.
 7. **Embed:** each passage without an embedding is sent to Voyage (`voyage-4`, 1024 dimensions) with its section title as a prefix; skipped with a warning if `VOYAGE_API_KEY` isn't set.
+
+## Evaluation
+
+`npm run eval` runs 58 questions through the same pipeline as `POST /api/ask` and grades every answer (2026-11-25, one run per model):
+
+| Metric | Sonnet 5.5 | Haiku 5.5 |
+| --- | --- | --- |
+| **Correct** (all 58) | **79.3%** (46/58, ±10.4) | **75.9%** (44/58, ±11.0) |
+| Numeric questions from XBRL (30): right figure, backed by a cited passage | 19 | 18 |
+| Questions a 10-K can't answer (10): says so | 10 | 10 |
+| Explanation (8) / hand-written (10) questions | 7 / 10 | 7 / 9 |
+| Cited claims backed by their passage (Opus 5.5 judge) | 98.1% | 99.3% |
+| Figures matching neither XBRL nor the filing text | 1 | 1 |
+| Cost per question / median latency | $0.0135 / 3.4 s | $0.0009 / 4.8 s |
+
+- **Sonnet vs Haiku:** the gap is inside the noise; Haiku is 15× cheaper per question with the same citation quality and refusal behavior.
+- **Biggest finding:** 9 of Sonnet's 12 misses are figures that appear only in the Item 8 financial statement tables (net income, inventory, buybacks, debt), which search leaves out because XBRL has them exactly. The app says the filings don't answer, honestly, even though `financial_facts` holds the number. Next fix: give Claude the company's key XBRL figures as a citable source.
+- Cases, grader and results: `eval/qa/`, `src/lib/eval/grade.ts`, `.claude/hillclimb/qa/` (report: build with the Claude API skill's report builder). Decisions: [docs/decisions.md](docs/decisions.md) (2026-11-25).
 
 ## Known limitations
 
