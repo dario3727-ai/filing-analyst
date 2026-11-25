@@ -174,3 +174,7 @@ No read policy: not visible to the browser key.
 ## Storage
 
 Bucket `raw-filings`: one HTML file per 10-K, path `{ticker}/{fiscal_year}.htm`.
+
+## Functions
+
+- `search_chunks(query_embedding, query_text, p_company_id, p_from_year, p_to_year, match_count = 8, p_items = null)`: hybrid passage search (semantic + keyword, Reciprocal Rank Fusion). Returns chunk fields plus `semantic_rank`, `keyword_rank` and `score`. Built in migration 20261124230000.

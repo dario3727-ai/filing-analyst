@@ -103,6 +103,7 @@ npm run ingest -- --ticker WMT --from 2023 --to 2025   # one company
 npm run ingest:test-set                                # all seven (default window 2023–2025)
 npm run profile:coverage                               # which XBRL tag fed each input
 npm run coverage                                       # which 10-K sections were found, per filing
+npm run search -- --ticker WMT --q "Why did gross margin change?"   # hybrid search from the terminal
 npm run dev                                            # http://localhost:3000 (search a loaded company)
 ```
 

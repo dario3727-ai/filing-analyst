@@ -20,7 +20,8 @@
     "inspect:headings": "node scripts/inspect-headings.ts",
     "inspect:sections": "node scripts/inspect-sections.ts",
     "inspect:chunks": "node scripts/inspect-chunks.ts",
-    "coverage": "node --env-file-if-exists=.env.local scripts/coverage.ts"
+    "coverage": "node --env-file-if-exists=.env.local scripts/coverage.ts",
+    "search": "node --env-file-if-exists=.env.local scripts/search.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
