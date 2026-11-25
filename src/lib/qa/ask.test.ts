@@ -41,6 +41,7 @@ const body = { ticker: "kr", question: "What was the LIFO charge?", fromYear: 20
 function fakeDeps(overrides: Partial<AskDeps> = {}) {
   const calls: string[] = [];
   const saved: AnswerRow[] = [];
+  const sentToClaude: Passage[] = [];
   const deps: AskDeps = {
     model: "claude-haiku-5-5",
     dailyLimit: 50,
@@ -49,12 +50,18 @@ function fakeDeps(overrides: Partial<AskDeps> = {}) {
     recentAnswers: async () => (calls.push("recent"), []),
     countAnswersSince: async (since) => (calls.push(`count:${since.toISOString()}`), 0),
     search: async (q, o) => (calls.push(`search:${o.companyId}:${o.fromYear}-${o.toYear}:${o.limit}`), passages),
-    answer: async (_q, _p, ctx) => (calls.push(`answer:${ctx.model}`), answer),
-    loadFacts: async () => (calls.push("facts"), [{ concept: "us-gaap:InventoryLIFOReservePeriodCharge", unit: "USD", value: 157e6, fiscalYear: 2025 }]),
+    answer: async (_q, p, ctx) => (calls.push(`answer:${ctx.model}`), sentToClaude.push(...p), answer),
+    loadFacts: async () => (
+      calls.push("facts"),
+      [
+        { concept: "us-gaap:InventoryLIFOReservePeriodCharge", unit: "USD", value: 157e6, fiscalYear: 2025, periodStart: "2025-02-02", periodEnd: "2026-01-31" },
+        { concept: "us-gaap:NetIncomeLoss", unit: "USD", value: 1_000e6, fiscalYear: 2025, periodStart: "2025-02-02", periodEnd: "2026-01-31" },
+      ]
+    ),
     save: async (row) => (calls.push("save"), saved.push(row), 77),
     ...overrides,
   };
-  return { deps, calls, saved };
+  return { deps, calls, saved, sentToClaude };
 }
 
 describe("parseAskRequest", () => {
@@ -88,9 +95,9 @@ describe("handleAsk", () => {
       "company:KR",
       "recent",
       "count:2026-11-24T00:00:00.000Z", // the daily cap counts from UTC midnight
+      "facts", // loaded first: they become XBRL passages and later check the numbers
       "search:4:2023-2025:8",
       "answer:claude-haiku-5-5",
-      "facts",
       "save",
     ]);
     expect(result).toEqual({
@@ -120,6 +127,16 @@ describe("handleAsk", () => {
       },
     });
     expect(saved[0]!.numbers_checked).toMatchObject({ total: 1, xbrl: 1 });
+  });
+
+  it("sends Claude the search results first, then the reported XBRL figures for the years asked about", async () => {
+    const { deps, sentToClaude } = fakeDeps();
+    await handleAsk(body, deps);
+    expect(sentToClaude.map((p) => [p.kind, p.heading])).toEqual([
+      ["text", "Margin"],
+      ["xbrl", "Net income"],
+    ]);
+    expect(sentToClaude[1]!.content).toBe("Kroger Co reported net income for the fiscal year ended January 31, 2026: $1,000 million (XBRL us-gaap:NetIncomeLoss).");
   });
 
   it("reuses a recent identical answer without any AI call", async () => {

@@ -70,6 +70,7 @@ export const SYSTEM_PROMPT = `You answer questions about one company's annual re
 - Base every statement on the passages, so each one is supported by a citation. Do not use outside knowledge about the company, its industry, markets or news.
 - If the passages don't contain the answer, begin your reply with exactly "${NOT_ANSWERED_OPENING}" and then, in at most one more sentence, say what the filing does cover. Do not guess.
 - If they answer only part of the question, begin with exactly "${PARTLY_ANSWERED_OPENING}", answer that part, and say what is missing.
+- Some search results are the company's reported financial data (XBRL) for a fiscal year, one figure each. For a financial figure, quote it from there and cite it.
 - Use figures exactly as the passages state them. Do not calculate new figures; reported numbers are checked against XBRL data separately.
 - Write in your own words and quote only short phrases; never repeat a passage's sentences after summarizing them.
 - Keep it short: a few short paragraphs at most, plain prose, no headings or bullet lists.
@@ -77,6 +78,7 @@ export const SYSTEM_PROMPT = `You answer questions about one company's annual re
 
 /** "Walmart Inc. FY2025 10-K · Item 7 · Margin (p. 35)" */
 export function passageTitle(p: Passage, companyName: string): string {
+  if (p.kind === "xbrl") return `${companyName} FY${p.fiscalYear} reported financial data (XBRL) · ${p.heading}`;
   const pages = p.pageStart === p.pageEnd ? `p. ${p.pageStart}` : `pp. ${p.pageStart}–${p.pageEnd}`;
   return `${companyName} FY${p.fiscalYear} 10-K · Item ${p.item}${p.heading ? ` · ${p.heading}` : ""} (${pages})`;
 }

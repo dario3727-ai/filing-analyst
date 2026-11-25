@@ -1,14 +1,19 @@
 /**
  * The whole Ask pipeline behind POST /api/ask (decisions 2026-11-24):
- *   validate → reuse a recent identical answer → daily cap → search →
- *   Claude → number check → save → response.
+ *   validate → reuse a recent identical answer → daily cap → load XBRL
+ *   facts → search → Claude (search results + reported XBRL figures) →
+ *   number check → save → response.
  * Every outside service is passed in (`AskDeps`), so tests run with fakes
  * and the route file only wires real clients. The response has the same
  * shape whether the answer is new or reused.
  */
 import { companyTerms, type Passage, type SearchOptions } from "../search/hybrid.ts";
 import type { Answer, AnswerContext } from "./answer.ts";
-import { checkFigures, type CheckFact } from "./numbers.ts";
+import type { Fact } from "../../metrics/resolve.ts";
+import { getProfile } from "../../metrics/profiles/index.ts";
+import { retailProfile } from "../../metrics/profiles/retail.ts";
+import { checkFigures } from "./numbers.ts";
+import { buildXbrlPassages } from "./xbrl-passages.ts";
 import { toAnswerRow, type AnswerRow } from "./store-answer.ts";
 
 export const MAX_QUESTION_CHARS = 1000;
@@ -93,6 +98,8 @@ export interface CompanyRef {
   id: number;
   name: string;
   ticker: string;
+  /** Picks the figures sent as XBRL passages; unknown or missing → retail. */
+  sectorProfile?: string;
 }
 
 export interface AskDeps {
@@ -109,7 +116,7 @@ export interface AskDeps {
   countAnswersSince: (since: Date) => Promise<number>;
   search: (question: string, options: SearchOptions) => Promise<Passage[]>;
   answer: (question: string, passages: readonly Passage[], ctx: AnswerContext) => Promise<Answer>;
-  loadFacts: (companyId: number, fromYear: number, toYear: number) => Promise<CheckFact[]>;
+  loadFacts: (companyId: number, fromYear: number, toYear: number) => Promise<Fact[]>;
   save: (row: AnswerRow) => Promise<number>;
 }
 
@@ -142,17 +149,26 @@ export async function handleAsk(body: unknown, deps: AskDeps): Promise<AskResult
     return { ok: false, status: 429, error: "Today's question limit has been reached. Try again tomorrow." };
   }
 
+  // Facts first: they become citable XBRL passages and later check the answer's numbers.
+  const facts = await deps.loadFacts(company.id, fromYear, toYear);
+  const years: number[] = [];
+  for (let y = fromYear; y <= toYear; y++) years.push(y);
+  const profile = (company.sectorProfile ? getProfile(company.sectorProfile) : undefined) ?? retailProfile;
+  const xbrl = buildXbrlPassages(facts, profile, years, company.name);
+
   let passages: Passage[];
   let answer: Answer;
   let latencyMs: number;
   try {
-    passages = await deps.search(question, {
+    const found = await deps.search(question, {
       companyId: company.id,
       fromYear,
       toYear,
       limit: PASSAGES_PER_QUESTION,
       excludeTerms: companyTerms(company.name, company.ticker),
     });
+    // Search results first (Claude reads them in order), then the reported figures.
+    passages = [...found, ...xbrl];
     const started = performance.now();
     answer = await deps.answer(question, passages, { companyName: company.name, ticker: company.ticker, fromYear, toYear, model: deps.model });
     latencyMs = performance.now() - started;
@@ -162,7 +178,6 @@ export async function handleAsk(body: unknown, deps: AskDeps): Promise<AskResult
     return { ok: false, status: 502, error: "The answer service is unavailable right now. Try again in a minute." };
   }
 
-  const facts = await deps.loadFacts(company.id, fromYear, toYear);
   const check = checkFigures(answer.text, facts, passages.map((p) => p.content));
   const row = toAnswerRow({ companyId: company.id, fromYear, toYear, question, answer, passages, check, latencyMs });
   const id = await deps.save(row);

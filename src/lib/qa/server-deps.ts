@@ -53,9 +53,9 @@ export function createAskDepsFromEnv(
     dailyLimit: limit > 0 ? limit : DEFAULT_DAILY_LIMIT,
     now: () => new Date(),
     async findCompany(ticker) {
-      const { data, error } = await db.from("companies").select("id, name, ticker").eq("ticker", ticker).maybeSingle();
+      const { data, error } = await db.from("companies").select("id, name, ticker, sector_profile").eq("ticker", ticker).maybeSingle();
       if (error) throw new Error(`Reading company failed: ${error.message}`);
-      return data ? { id: Number(data.id), name: String(data.name), ticker: String(data.ticker) } : null;
+      return data ? { id: Number(data.id), name: String(data.name), ticker: String(data.ticker), sectorProfile: String(data.sector_profile) } : null;
     },
     async recentAnswers({ companyId, fromYear, toYear, model, since }) {
       const { data, error } = await db

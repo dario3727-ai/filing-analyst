@@ -50,7 +50,9 @@
     "src/lib/qa/numbers.ts",
     "src/lib/qa/server-deps.ts",
     "src/lib/search/hybrid.ts",
-    "src/lib/search/retrieve.ts"
+    "src/lib/search/retrieve.ts",
+    "src/lib/qa/xbrl-passages.ts",
+    "src/lib/qa/load-facts.ts"
   ],
   "harness_sha": "610f485c244282d1fcd54bed270be2c4fa0743cf0f79d4805d08ac316a731c75"
 }

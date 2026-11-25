@@ -52,7 +52,8 @@ export interface Passage {
   fiscalYear: number;
   item: string;
   heading: string | null;
-  kind: "text" | "table";
+  /** "xbrl": a reported figure from financial_facts (qa/xbrl-passages.ts), not a stored 10-K passage. */
+  kind: "text" | "table" | "xbrl";
   pageStart: number;
   pageEnd: number;
   content: string;

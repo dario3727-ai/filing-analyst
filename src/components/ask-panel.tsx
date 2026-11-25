@@ -45,7 +45,11 @@ function Rich({ text }: { text: string }) {
   );
 }
 
+/** Reported XBRL figures are sources too (qa/xbrl-passages.ts): no 10-K section to open. */
+const isXbrl = (s: AskSource) => s.item === "XBRL";
+
 function sourceLabel(s: AskSource): string {
+  if (isXbrl(s)) return `FY${s.fiscalYear} reported financial data (XBRL) · ${s.heading ?? "figure"}`;
   const pages = s.pageStart === s.pageEnd ? `p. ${s.pageStart}` : `pp. ${s.pageStart}–${s.pageEnd}`;
   return `FY${s.fiscalYear} 10-K · Item ${s.item}${s.heading ? ` · ${s.heading}` : ""} · ${pages}`;
 }
@@ -95,6 +99,8 @@ export function AskPanel({ ticker, companyName, fromYear, toYear, passageCount }
     setActiveSource(source);
     setPanelOpen(true);
     setSectionError(null);
+    // A reported XBRL figure is shown as is; nothing to fetch.
+    if (isXbrl(source)) return;
     // Same section already loaded: just move the highlight.
     if (section?.passages.some((p) => p.id === source.passageId)) return;
     setSection(null);
@@ -225,9 +231,9 @@ export function AskPanel({ ticker, companyName, fromYear, toYear, passageCount }
           <div className="flex items-start justify-between gap-2 border-b border-gray-200 p-3">
             <div className="text-xs">
               <p className="font-semibold">
-                Source {activeSource.n}: {section ? `${section.company.name} FY${section.filing.fiscalYear} ${section.filing.form}` : sourceLabel(activeSource)}
+                Source {activeSource.n}: {isXbrl(activeSource) ? sourceLabel(activeSource) : section ? `${section.company.name} FY${section.filing.fiscalYear} ${section.filing.form}` : sourceLabel(activeSource)}
               </p>
-              {section && (
+              {section && !isXbrl(activeSource) && (
                 <>
                   <p>
                     Item {section.section.item}: {section.section.title} (pp. {section.section.pageStart}–{section.section.pageEnd})
@@ -243,9 +249,18 @@ export function AskPanel({ ticker, companyName, fromYear, toYear, passageCount }
             </button>
           </div>
           <div className="flex-1 overflow-y-auto p-3 text-sm leading-6">
-            {sectionError && <p className="text-red-700">{sectionError}</p>}
-            {!section && !sectionError && <p className="text-gray-500">Loading the section…</p>}
-            {section?.passages.map((p) => {
+            {isXbrl(activeSource) && (
+              <div className="rounded bg-yellow-100 p-2 outline outline-yellow-300">
+                <p className="whitespace-pre-wrap">{activeSource.citedText}</p>
+                <p className="mt-2 text-xs text-gray-600">
+                  From the company&apos;s XBRL financial data: the tagged figures it files with its 10-K, the same numbers as the financial
+                  statements. Stored in financial_facts and shown in Key financials above.
+                </p>
+              </div>
+            )}
+            {!isXbrl(activeSource) && sectionError && <p className="text-red-700">{sectionError}</p>}
+            {!isXbrl(activeSource) && !section && !sectionError && <p className="text-gray-500">Loading the section…</p>}
+            {!isXbrl(activeSource) && section?.passages.map((p) => {
               const cited = p.id === activeSource.passageId;
               return (
                 <div
