@@ -147,16 +147,25 @@ Unique on (section_id, chunk_index). Indexes: (company_id, fiscal_year), (filing
 
 No read policy: not visible to the browser key.
 
-### answers
+### answers (built 2026-11-24, migration 20261124233000)
+Private: no access for the browser key; written and read with the secret key only.
+
 | Column | Type | Notes |
 | --- | --- | --- |
 | id | bigint, PK | |
 | company_id | bigint → companies | |
-| question, answer | text | |
-| citations | jsonb | chunk ids and quoted spans |
-| numbers_checked | jsonb | each number and whether it matched XBRL |
+| from_year, to_year | int | fiscal-year range searched |
+| question | text | 1–1000 characters |
+| status | text | answered, partly_answered, not_answered, declined, truncated |
+| answer | text | full text; empty when declined |
+| segments | jsonb | answer split where citations start and stop: `[{ text, citations: [{ passageId, citedText }] }]` |
+| citations | jsonb | distinct cited passages: `[{ passageId, fiscalYear, item, pageStart, pageEnd, citedText }]` |
+| passages_sent | jsonb | every passage Claude saw, with semantic and keyword ranks and score |
+| numbers_checked | jsonb | `{ total, xbrl, passage, unverified, figures: [{ raw, kind, value, status, concept?, fiscalYear?, xbrlCandidates? }] }` |
 | model | text | |
+| stop_reason | text | |
 | input_tokens, output_tokens | int | |
+| latency_ms | int | time of the Claude call |
 | created_at | timestamptz | |
 
 ### eval_results

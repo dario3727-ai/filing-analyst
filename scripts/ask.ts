@@ -7,6 +7,7 @@ import { createClient } from "@supabase/supabase-js";
 import { answerQuestion, DEV_MODEL, QA_MODEL } from "../src/lib/qa/answer.ts";
 import { loadFactsForCheck } from "../src/lib/qa/load-facts.ts";
 import { checkFigures } from "../src/lib/qa/numbers.ts";
+import { saveAnswer, toAnswerRow } from "../src/lib/qa/store-answer.ts";
 import { searchPassages } from "../src/lib/search/hybrid.ts";
 import { createVoyageClientFromEnv } from "../src/lib/voyage/client.ts";
 
@@ -30,6 +31,10 @@ if (!process.env.ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not se
 const voyage = createVoyageClientFromEnv(process.env, { maxRequests: 3 });
 if (!voyage) throw new Error("VOYAGE_API_KEY is not set (run npm run check:env)");
 const db = createClient(url, key, { auth: { persistSession: false } });
+// The answers table is private: saving needs the secret key (scripts and server code only).
+const secretKey = process.env.SUPABASE_SECRET_KEY;
+if (!secretKey) throw new Error("SUPABASE_SECRET_KEY is not set (run npm run check:env)");
+const adminDb = createClient(url, secretKey, { auth: { persistSession: false } });
 const anthropic = new Anthropic();
 
 const { data: company, error } = await db
@@ -47,12 +52,14 @@ const passages = await searchPassages(
   { companyId: Number(company.id), fromYear, toYear, limit: 8 },
   { voyage, rpc: async (name, args) => db.rpc(name, args) },
 );
+const started = performance.now();
 const answer = await answerQuestion(
   values.q,
   passages,
   { companyName: String(company.name), ticker: String(company.ticker), fromYear, toYear, model },
   { createMessage: (params) => anthropic.beta.messages.create(params) },
 );
+const latencyMs = performance.now() - started;
 
 // Number sources in the order they're first cited.
 const numberOf = new Map(answer.citedPassageIds.map((id, i) => [id, i + 1]));
@@ -82,4 +89,11 @@ if (check.total > 0) {
     console.log(`  ${f.figure.raw.padEnd(18)} ${detail}`);
   }
 }
-console.log(`\n${passages.length} passages sent · ${answer.inputTokens} input + ${answer.outputTokens} output tokens`);
+const answerId = await saveAnswer(
+  adminDb,
+  toAnswerRow({ companyId: Number(company.id), fromYear, toYear, question: values.q, answer, passages, check, latencyMs }),
+);
+console.log(
+  `\n${passages.length} passages sent · ${answer.inputTokens} input + ${answer.outputTokens} output tokens · ` +
+    `${(latencyMs / 1000).toFixed(1)} s · saved as answer #${answerId}`,
+);
