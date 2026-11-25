@@ -72,6 +72,7 @@ Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages 
 - [x] `npm run eval`: scores number accuracy, citation support and admitting unknowns; writes results files and a report under `.claude/hillclimb/qa/` (the planned `eval_results` table was dropped, decisions 2026-11-25)
 - [x] Compare Haiku and Sonnet scores (Sonnet 79.3%, Haiku 75.9%: within the noise; Haiku 15× cheaper)
 - **Done when:** eval scores are recorded and in the README.
+- **Milestone 5 completed 2026-11-25:** What changed live for all seven companies (14 year pairs); eval on 58 questions: Sonnet 79.3%, Haiku 75.9%, recorded in the README.
 
 ## Milestone 6: ship (week 8)
 - [ ] Deploy to Vercel; keep the Supabase project from pausing

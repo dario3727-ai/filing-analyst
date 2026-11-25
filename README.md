@@ -2,7 +2,7 @@
 
 An AI tool that reads 10-K filings and explains *why* the numbers moved, with every claim cited to the exact passage and checked against the company's reported data.
 
-> Status: milestones 1–4 of 6 complete. The web app (bare-bones on purpose) searches a loaded company, shows its numbers, and answers questions with clickable citations that open the 10-K section beside the answer. The pipeline loads a company's SEC data, computes ratios and red flags, and turns its 10-Ks into searchable passages; `POST /api/ask` answers questions with cited passages and checks every figure against XBRL (10 of 10 hand-written questions correct: [docs/checks/milestone-3-questions.md](docs/checks/milestone-3-questions.md)). Next: Risk Factors comparison and evals (milestone 5). See [docs/build-plan.md](docs/build-plan.md).
+> Status: milestones 1–5 of 6 complete (eval: Sonnet 79.3%, Haiku 75.9% on 58 questions; see Evaluation). The web app (bare-bones on purpose) searches a loaded company, shows its numbers, and answers questions with clickable citations that open the 10-K section beside the answer. The pipeline loads a company's SEC data, computes ratios and red flags, and turns its 10-Ks into searchable passages; `POST /api/ask` answers questions with cited passages and checks every figure against XBRL (10 of 10 hand-written questions correct: [docs/checks/milestone-3-questions.md](docs/checks/milestone-3-questions.md)). Next: deploy (milestone 6). See [docs/build-plan.md](docs/build-plan.md).
 
 ## What it does
 
