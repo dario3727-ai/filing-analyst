@@ -31,7 +31,17 @@ export interface Block {
   text: string;
   page: number;
   kind: "text" | "table";
+  /**
+   * True when (nearly) all of the block's text is bold or italic, as risk
+   * titles in Item 1A usually are. Left out when false.
+   */
+  emphasis?: true;
 }
+
+const EMPHASIS_TAGS = new Set(["b", "strong", "i", "em"]);
+const EMPHASIS_STYLE = /font-weight\s*:\s*(bold|bolder|[6-9]00)|font-style\s*:\s*italic/i;
+/** Share of a block's non-space characters that must be emphasized. */
+const EMPHASIS_SHARE = 0.9;
 
 /** A cell that holds a number, a placeholder dash, or currency/percent symbols around one. */
 const NUMERIC_CELL = /^[$€£(]*\s*[-–—]?\s*[\d.,]*\d[\d.,]*\s*[)%]*$|^[-–—]+$/;
@@ -67,6 +77,13 @@ export function htmlToBlocks(html: string): Block[] {
   const blocks: Block[] = [];
   let page = 1;
   let buffer: string[] = [];
+  // Parallel to buffer: whether each piece was inside bold/italic styling.
+  let emphasized: boolean[] = [];
+  let emphasisDepth = 0;
+  const push = (text: string) => {
+    buffer.push(text);
+    emphasized.push(emphasisDepth > 0);
+  };
   // One entry per open <table>: where its blocks start and its cell tally.
   const tables: { startBlock: number; cells: number; numeric: number }[] = [];
   // Inside a table row, a whole row is one block even when each cell wraps
@@ -75,13 +92,23 @@ export function htmlToBlocks(html: string): Block[] {
 
   const flush = () => {
     const text = normalizeText(buffer.join(""));
-    if (text !== "") blocks.push({ text, page, kind: "text" });
+    if (text !== "") {
+      let total = 0;
+      let bold = 0;
+      buffer.forEach((piece, i) => {
+        const letters = piece.replace(/\s/g, "").length;
+        total += letters;
+        if (emphasized[i]) bold += letters;
+      });
+      blocks.push(total > 0 && bold / total >= EMPHASIS_SHARE ? { text, page, kind: "text", emphasis: true } : { text, page, kind: "text" });
+    }
     buffer = [];
+    emphasized = [];
   };
 
   const walk = (node: HtmlNode): void => {
     if (isText(node)) {
-      buffer.push(node.data);
+      push(node.data);
       return;
     }
     if (!isElement(node)) return; // comments, processing instructions
@@ -92,7 +119,7 @@ export function htmlToBlocks(html: string): Block[] {
     if (HIDDEN.test(style)) return;
 
     if (name === "br") {
-      if (rowDepth > 0) buffer.push(" ");
+      if (rowDepth > 0) push(" ");
       else flush();
       return;
     }
@@ -108,11 +135,14 @@ export function htmlToBlocks(html: string): Block[] {
 
     const isCell = name === "td" || name === "th";
     // Table cells sit side by side in a row: keep a space between them.
-    if (isCell) buffer.push(" ");
+    if (isCell) push(" ");
     const cellStart = buffer.length;
+    const emphasizes = EMPHASIS_TAGS.has(name) || EMPHASIS_STYLE.test(style);
+    if (emphasizes) emphasisDepth++;
     if (name === "tr") rowDepth++;
     for (const child of node.children) walk(child);
     if (name === "tr") rowDepth--;
+    if (emphasizes) emphasisDepth--;
     if (isCell) {
       const cellText = normalizeText(buffer.slice(cellStart).join(""));
       const table = tables.at(-1);
@@ -120,7 +150,7 @@ export function htmlToBlocks(html: string): Block[] {
         table.cells++;
         if (NUMERIC_CELL.test(cellText)) table.numeric++;
       }
-      buffer.push(" ");
+      push(" ");
     }
     if (isBlock) flush();
 

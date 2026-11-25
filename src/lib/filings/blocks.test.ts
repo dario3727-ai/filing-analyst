@@ -129,6 +129,28 @@ describe("removePageFurniture", () => {
   });
 });
 
+describe("emphasis", () => {
+  const emph = (html: string) => htmlToBlocks(html).map((b) => [b.text, b.emphasis ?? false]);
+  it("marks blocks whose text is bold or italic, by tag or by style", () => {
+    expect(
+      emph(
+        '<p><b>We face strong competition.</b></p><p><span style="font-weight:700">Tariffs could raise costs.</span></p>' +
+          '<p><span style="font-style: italic">Inflation could hurt margins.</span></p><p>Plain body text here.</p>',
+      ),
+    ).toEqual([
+      ["We face strong competition.", true],
+      ["Tariffs could raise costs.", true],
+      ["Inflation could hurt margins.", true],
+      ["Plain body text here.", false],
+    ]);
+  });
+  it("needs nearly all of the text emphasized, not just a lead-in word", () => {
+    expect(emph("<p><b>Note:</b> the rest of this long paragraph is plain text and not a title.</p>")).toEqual([
+      ["Note: the rest of this long paragraph is plain text and not a title.", false],
+    ]);
+  });
+});
+
 describe("decodeFiling", () => {
   it("reads UTF-8", () => {
     expect(decodeFiling(new TextEncoder().encode("Walmart’s"))).toBe("Walmart’s");
