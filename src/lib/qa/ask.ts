@@ -6,7 +6,7 @@
  * and the route file only wires real clients. The response has the same
  * shape whether the answer is new or reused.
  */
-import type { Passage, SearchOptions } from "../search/hybrid.ts";
+import { companyTerms, type Passage, type SearchOptions } from "../search/hybrid.ts";
 import type { Answer, AnswerContext } from "./answer.ts";
 import { checkFigures, type CheckFact } from "./numbers.ts";
 import { toAnswerRow, type AnswerRow } from "./store-answer.ts";
@@ -100,6 +100,8 @@ export interface AskDeps {
   model: string;
   /** New answers allowed per UTC day, across all users. */
   dailyLimit: number;
+  /** Return a stored identical answer when there is one (default true; checks and evals turn it off). */
+  reuseAnswers?: boolean;
   now: () => Date;
   findCompany: (ticker: string) => Promise<CompanyRef | null>;
   /** Recent answers for this company, years and model, newest first. */
@@ -127,11 +129,13 @@ export async function handleAsk(body: unknown, deps: AskDeps): Promise<AskResult
   if (!company) return { ok: false, status: 404, error: `${ticker} is not loaded.` };
 
   const now = deps.now();
-  const since = new Date(now.getTime() - CACHE_DAYS * 24 * 60 * 60 * 1000);
-  const recent = await deps.recentAnswers({ companyId: company.id, fromYear, toYear, model: deps.model, since });
-  const key = normalizeQuestion(question);
-  const hit = recent.find((r) => REUSABLE.has(r.row.status) && normalizeQuestion(r.row.question) === key);
-  if (hit) return { ok: true, response: toAskResponse(hit.id, hit.row, true) };
+  if (deps.reuseAnswers !== false) {
+    const since = new Date(now.getTime() - CACHE_DAYS * 24 * 60 * 60 * 1000);
+    const recent = await deps.recentAnswers({ companyId: company.id, fromYear, toYear, model: deps.model, since });
+    const key = normalizeQuestion(question);
+    const hit = recent.find((r) => REUSABLE.has(r.row.status) && normalizeQuestion(r.row.question) === key);
+    if (hit) return { ok: true, response: toAskResponse(hit.id, hit.row, true) };
+  }
 
   const midnightUtc = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   if ((await deps.countAnswersSince(midnightUtc)) >= deps.dailyLimit) {
@@ -142,7 +146,13 @@ export async function handleAsk(body: unknown, deps: AskDeps): Promise<AskResult
   let answer: Answer;
   let latencyMs: number;
   try {
-    passages = await deps.search(question, { companyId: company.id, fromYear, toYear, limit: PASSAGES_PER_QUESTION });
+    passages = await deps.search(question, {
+      companyId: company.id,
+      fromYear,
+      toYear,
+      limit: PASSAGES_PER_QUESTION,
+      excludeTerms: companyTerms(company.name, company.ticker),
+    });
     const started = performance.now();
     answer = await deps.answer(question, passages, { companyName: company.name, ticker: company.ticker, fromYear, toYear, model: deps.model });
     latencyMs = performance.now() - started;

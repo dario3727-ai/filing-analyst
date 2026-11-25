@@ -8,7 +8,9 @@ import { answerQuestion, DEV_MODEL, QA_MODEL } from "../src/lib/qa/answer.ts";
 import { loadFactsForCheck } from "../src/lib/qa/load-facts.ts";
 import { checkFigures } from "../src/lib/qa/numbers.ts";
 import { saveAnswer, toAnswerRow } from "../src/lib/qa/store-answer.ts";
-import { searchPassages } from "../src/lib/search/hybrid.ts";
+import { companyTerms } from "../src/lib/search/hybrid.ts";
+import { createNextTablesLookup } from "../src/lib/search/next-tables.ts";
+import { retrievePassages } from "../src/lib/search/retrieve.ts";
 import { createVoyageClientFromEnv } from "../src/lib/voyage/client.ts";
 
 const { values } = parseArgs({
@@ -47,10 +49,10 @@ if (!company) throw new Error(`${values.ticker} is not loaded`);
 
 const fromYear = Number(values.from ?? 2023);
 const toYear = Number(values.to ?? 2025);
-const passages = await searchPassages(
+const passages = await retrievePassages(
   values.q,
-  { companyId: Number(company.id), fromYear, toYear, limit: 8 },
-  { voyage, rpc: async (name, args) => db.rpc(name, args) },
+  { companyId: Number(company.id), fromYear, toYear, limit: 8, excludeTerms: companyTerms(String(company.name), String(company.ticker)) },
+  { voyage, rpc: async (name, args) => db.rpc(name, args), nextTables: createNextTablesLookup(db) },
 );
 const started = performance.now();
 const answer = await answerQuestion(

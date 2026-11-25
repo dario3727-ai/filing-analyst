@@ -2,7 +2,7 @@
 
 An AI tool that reads 10-K filings and explains *why* the numbers moved, with every claim cited to the exact passage and checked against the company's reported data.
 
-> Status: milestones 1 and 2 of 6 complete, plus a bare-bones web app (search a loaded company, pick fiscal years, see everything stored for it). The pipeline loads a company's SEC data, computes ratios and red flags, and turns its 10-Ks into searchable passages (all five key sections found in 21 of 21 filings). Next: search and Q&A. See [docs/build-plan.md](docs/build-plan.md).
+> Status: milestones 1–3 of 6 complete, plus a bare-bones web app. The pipeline loads a company's SEC data, computes ratios and red flags, and turns its 10-Ks into searchable passages; `POST /api/ask` answers questions with cited passages and checks every figure against XBRL (10 of 10 hand-written questions correct: [docs/checks/milestone-3-questions.md](docs/checks/milestone-3-questions.md)). Next: the frontend (milestone 4). See [docs/build-plan.md](docs/build-plan.md).
 
 ## What it does
 
@@ -105,6 +105,7 @@ npm run profile:coverage                               # which XBRL tag fed each
 npm run coverage                                       # which 10-K sections were found, per filing
 npm run search -- --ticker WMT --q "Why did gross margin change?"   # hybrid search from the terminal
 npm run ask -- --ticker WMT --q "Why did gross margin change?"      # cited answer (Haiku; add --model sonnet)
+npm run check:questions                                # milestone 3 check: 10 questions on Sonnet, writes docs/checks/
 npm run dev                                            # http://localhost:3000 (search a loaded company)
 ```
 

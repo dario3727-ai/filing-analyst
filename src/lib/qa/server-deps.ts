@@ -5,7 +5,8 @@
  */
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
-import { searchPassages } from "../search/hybrid.ts";
+import { createNextTablesLookup } from "../search/next-tables.ts";
+import { retrievePassages } from "../search/retrieve.ts";
 import { createVoyageClientFromEnv } from "../voyage/client.ts";
 import { answerQuestion, DEV_MODEL, QA_MODEL } from "./answer.ts";
 import type { AskDeps } from "./ask.ts";
@@ -31,7 +32,10 @@ const ANSWER_COLUMNS =
 export type DepsResult = { ok: true; deps: AskDeps } | { ok: false; missing: string[] };
 
 /** Builds the real dependencies, or lists which environment variables are missing (names only). */
-export function createAskDepsFromEnv(env: Env, options: { model?: string; voyageMaxRequests?: number } = {}): DepsResult {
+export function createAskDepsFromEnv(
+  env: Env,
+  options: { model?: string; voyageMaxRequests?: number; reuseAnswers?: boolean } = {},
+): DepsResult {
   const missing = ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SECRET_KEY", "ANTHROPIC_API_KEY", "VOYAGE_API_KEY"].filter(
     (name) => !env[name]?.trim(),
   );
@@ -45,6 +49,7 @@ export function createAskDepsFromEnv(env: Env, options: { model?: string; voyage
 
   const deps: AskDeps = {
     model: options.model ?? chooseModel(env),
+    reuseAnswers: options.reuseAnswers ?? true,
     dailyLimit: limit > 0 ? limit : DEFAULT_DAILY_LIMIT,
     now: () => new Date(),
     async findCompany(ticker) {
@@ -72,7 +77,12 @@ export function createAskDepsFromEnv(env: Env, options: { model?: string; voyage
       if (error) throw new Error(`Counting answers failed: ${error.message}`);
       return count ?? 0;
     },
-    search: (question, opts) => searchPassages(question, opts, { voyage, rpc: async (name, args) => db.rpc(name, args) }),
+    search: (question, opts) =>
+      retrievePassages(question, opts, {
+        voyage,
+        rpc: async (name, args) => db.rpc(name, args),
+        nextTables: createNextTablesLookup(db),
+      }),
     answer: (question, passages, ctx) =>
       answerQuestion(question, passages, ctx, { createMessage: (params) => anthropic.beta.messages.create(params) }),
     loadFacts: (companyId, fromYear, toYear) => loadFactsForCheck(db, companyId, fromYear, toYear),

@@ -52,6 +52,7 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 - [x] `answers` table and logging (private; `npm run ask` saves every answer)
 - [x] API route `/api/ask` (validation, per-visitor and daily limits, reuse of identical answers)
 - **Done when:** 10 hand-written questions return correct, cited answers.
+- **Milestone 3 completed 2026-11-24:** `npm run check:questions` gives 10 of 10 correct, cited answers on Sonnet (report in `docs/checks/milestone-3-questions.md`), after fixing running headers in the parser and four retrieval issues the check exposed (see decisions).
 
 ## Milestone 4: frontend (week 6)
 - [ ] Design pass over the milestone 2.5 pages: company search and year picker styled from the mockup

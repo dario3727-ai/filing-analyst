@@ -133,6 +133,13 @@ describe("handleAsk", () => {
     expect(calls).toEqual(["company:KR"]);
   });
 
+  it("skips reuse when turned off (checks and evals want fresh answers)", async () => {
+    const { deps, calls } = fakeDeps({ reuseAnswers: false });
+    await handleAsk(body, deps);
+    expect(calls).not.toContain("recent");
+    expect(calls).toContain("answer:claude-haiku-5-5");
+  });
+
   it("doesn't reuse a declined answer", async () => {
     const first = fakeDeps();
     await handleAsk(body, first.deps);

@@ -151,29 +151,44 @@ export function htmlToBlocks(html: string): Block[] {
 
 const PAGE_NUMBER = /^(page\s*)?[A-Z]?-?\d{1,3}$/i;
 const CONTENTS_LINK = /^(table of contents|index|back to contents)$/i;
+/** A short line naming the contents page, e.g. "RISK FACTORS Table of Contents" (Target 2025 headers). */
+const CONTENTS_HEADER = /\btable of contents\b/i;
 const MAX_RUNNING_HEADER_WORDS = 8;
 
 /**
+ * The form of a short line with its numbers blanked out, so a running header
+ * that carries the page number ("TARGET CORPORATION 2025 Form 10-K 51",
+ * "... 52") counts as one repeated line. Lines without letters (numbers only)
+ * get no key: those are page numbers or table fragments, handled elsewhere.
+ */
+export function runningHeaderKey(text: string): string | undefined {
+  return /[a-z]/i.test(text) ? text.replace(/\d+/g, "#") : undefined;
+}
+
+/**
  * Drops printing artifacts that aren't content: bare page numbers,
- * "Table of Contents" links, and running headers (a short line repeated on
- * many pages, like "Walmart Inc."). A line counts as a running header if it
- * appears at least 8 times and on at least 20% of the pages, so a repeated
- * subheading such as "Overview" (a few times) is kept. "Item N" lines are
- * never dropped.
+ * "Table of Contents" links and short lines naming them, and running headers
+ * (a short line repeated on many pages, like "Walmart Inc.", or
+ * "TARGET CORPORATION 2025 Form 10-K 51" with the page number changing).
+ * A line counts as a running header if its numbers-blanked form appears at
+ * least 8 times and on at least 20% of the pages, so a repeated subheading
+ * such as "Overview" (a few times) is kept. "Item N" lines are never dropped.
  */
 export function removePageFurniture(blocks: readonly Block[]): Block[] {
   const pages = blocks.at(-1)?.page ?? 1;
+  const short = (b: Block) => b.kind === "text" && b.text.split(" ").length <= MAX_RUNNING_HEADER_WORDS;
   const counts = new Map<string, number>();
   for (const b of blocks) {
-    if (b.kind === "text" && b.text.split(" ").length <= MAX_RUNNING_HEADER_WORDS) {
-      counts.set(b.text, (counts.get(b.text) ?? 0) + 1);
-    }
+    const key = short(b) ? runningHeaderKey(b.text) : undefined;
+    if (key !== undefined) counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   const threshold = Math.max(8, Math.ceil(pages * 0.2));
   return blocks.filter((b) => {
     if (b.kind !== "text") return true;
     if (/^item\s*\d/i.test(b.text)) return true;
     if (PAGE_NUMBER.test(b.text) || CONTENTS_LINK.test(b.text)) return false;
-    return (counts.get(b.text) ?? 0) < threshold;
+    if (short(b) && CONTENTS_HEADER.test(b.text)) return false;
+    const key = short(b) ? runningHeaderKey(b.text) : undefined;
+    return key === undefined || (counts.get(key) ?? 0) < threshold;
   });
 }

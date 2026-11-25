@@ -15,7 +15,8 @@ const { values } = parseArgs({ options: { model: { type: "string" } } });
 const model = values.model === "haiku" ? DEV_MODEL : QA_MODEL;
 if (MILESTONE3_QUESTIONS.length > MAX_QUESTIONS) throw new Error(`More than ${MAX_QUESTIONS} questions; raise the cap deliberately.`);
 
-const built = createAskDepsFromEnv(process.env, { model, voyageMaxRequests: MILESTONE3_QUESTIONS.length + 2 });
+// Fresh answers every run: reusing stored ones would hide any change to search or prompts.
+const built = createAskDepsFromEnv(process.env, { model, voyageMaxRequests: MILESTONE3_QUESTIONS.length + 2, reuseAnswers: false });
 if (!built.ok) throw new Error(`Missing ${built.missing.join(", ")} (run npm run check:env)`);
 const { deps } = built;
 

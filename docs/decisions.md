@@ -248,3 +248,22 @@ Calibrated on the six retailers, fiscal 2015–2025 (66 company-years); about a 
 - **Errors:** a Voyage or Claude failure → 502 with a plain message; details go to the server log only, never to the browser.
 - **Tried on the dev server:** new question 200 (9.5 s), repeat 200 cached (0.5 s), 400 / 404 / 400 for missing question, unknown ticker and non-JSON, 405 for GET, 429 on the sixth quick request.
 - **Alternatives:** a Server Action (tied to a form; a plain JSON route is easier to test and reuse for evals); a shared rate limiter such as Redis (another service; the database-backed daily cap covers cost, which is what matters); streaming the answer (better feel for long answers; revisit with the Ask screen).
+
+## 2026-11-24: Running headers with page numbers are page furniture (parser fix)
+- **Finding (milestone 3 check):** Target's 2025 10-K prints "TARGET CORPORATION 2025 Form 10-K 51" (page number changing) and lines like "RISK FACTORS Table of Contents" on every page. The repeat detector compared exact text, so these survived and became the subheading of 38 of Target's 172 passages. Because subheadings go into both the keyword index and the embedded text, unrelated passages (gift cards, stock compensation) matched questions mentioning "Target" or "2025".
+- **Fix:** repeats are counted on the line with its numbers blanked ("TARGET CORPORATION # Form #-K #"), only for lines that contain letters; short lines containing "Table of Contents" are dropped. Same thresholds as before (8 times and 20% of pages).
+- **Effect:** fixture audit 38 → 0 furniture subheadings, the other six fixtures unchanged passage for passage; all 21 filings re-parsed and re-embedded (Target 493 → 480 passages, every other company identical; 1.05M Voyage tokens, still within the free tier; coverage still 21/21). The buyback passage went from 7th to 1st by meaning within Target's fiscal 2025.
+- **Alternatives:** stripping only the "Form 10-K" pattern (too specific to one filer); ignoring subheadings in search (loses useful topic words like "Share Repurchases").
+
+## 2026-11-24: Retrieval fixes from the milestone 3 check
+- **Diagnosis first:** each miss was traced to where the needed passage ranked before changing code.
+- **Tables stay with their lead-in:** Gap's "…comp sales by brand is as follows:" was chosen but the table itself ranked 10th. When a chosen passage is directly followed by a table in the same section, that table is added right after it (at most 4 added).
+- **Each year searched on its own, then years take turns:** Target's top 8 held 7 fiscal 2024 passages. Taking turns from one shared ranked list still dropped Kroger's 2025 LIFO explanation, although it ranks first within its own year. Now one embedding, one search per year, 4 slots per year (8 for two years, up to 12).
+- **Deeper candidate lists:** with 4 slots, search_chunks only looked at 16 keyword matches, so a passage at keyword #19 got no keyword credit; each search now ranks at least 12 candidates (48 per list) before keeping its top few.
+- **The company's own name is left out of the keyword search:** every passage searched is that company's, so "Target" in the question matched nearly all of them and pushed the buyback passages to keyword #19 and #24. Without it they rank 1st and 2nd. The meaning search still gets the full question.
+- **Alternatives:** sending more passages (costs more, and the right one still ranked 16th); asking Claude to request more passages in a loop (more calls, CLAUDE.md prefers no loops); a reranking model (another service; revisit in milestone 5 if evals show a need).
+
+## 2026-11-24: Milestone 3 check passed: 10 of 10 correct, cited answers
+- **Check:** `npm run check:questions` runs 10 hand-written questions (all six retailers; margins, buybacks, membership fees, LIFO, operating profit, comps, store growth, tariffs, plus two the 10-K can't answer) through the same pipeline as POST /api/ask on Sonnet, with reuse of stored answers off. Report: `docs/checks/milestone-3-questions.md`.
+- **First run:** 8 complete, 2 incomplete but honestly marked "partly answered" (Gap comps, Target buybacks), no wrong statements, no unverified figures.
+- **After the parser and retrieval fixes:** 10 of 10 correct and cited, each reviewed against its cited passages; 0 unverified figures. Cost of all runs about $0.75.

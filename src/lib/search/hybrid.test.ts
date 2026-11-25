@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { searchPassages, toPassage, validateSearch, type RpcCall } from "./hybrid.ts";
+import { companyTerms, keywordText, searchPassages, toPassage, validateSearch, type RpcCall } from "./hybrid.ts";
 
 const options = { companyId: 1, fromYear: 2023, toYear: 2025 };
 
@@ -92,6 +92,19 @@ describe("searchPassages", () => {
     const f = fakeDeps();
     await expect(searchPassages("   ", options, f.deps)).rejects.toThrow("Question is empty");
     expect(f.embedCalls).toHaveLength(0);
+  });
+});
+
+describe("companyTerms and keywordText", () => {
+  it("lists the name's words and the ticker", () => {
+    expect(companyTerms("TARGET CORP", "TGT")).toEqual(["target", "corp", "tgt"]);
+    expect(companyTerms("COSTCO WHOLESALE CORP /NEW", "COST")).toEqual(["costco", "wholesale", "corp", "new", "cost"]);
+  });
+  it("removes those words and their possessives, case-insensitively, and nothing else", () => {
+    const terms = companyTerms("Walmart Inc.", "WMT");
+    expect(keywordText("Why did Walmart's gross profit rate change at WALMART?", terms)).toBe("Why did gross profit rate change at ?");
+    expect(keywordText("Inventory at Walmartian stores", terms)).toBe("Inventory at Walmartian stores");
+    expect(keywordText("No terms", [])).toBe("No terms");
   });
 });
 

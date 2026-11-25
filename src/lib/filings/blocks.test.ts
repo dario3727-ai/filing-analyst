@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { decodeFiling, htmlToBlocks, removePageFurniture } from "@/lib/filings/blocks";
+import { decodeFiling, htmlToBlocks, removePageFurniture, runningHeaderKey } from "@/lib/filings/blocks";
 
 const blocks = (html: string) => htmlToBlocks(html).map((b) => b.text);
 
@@ -92,12 +92,35 @@ describe("removePageFurniture", () => {
   });
 
   it("drops a running header repeated on many pages, but keeps a subheading used a few times", () => {
-    const blocks = Array.from({ length: 30 }, (_, p) => [b("Walmart Inc.", p + 1), b(`Paragraph on page ${p + 1}.`, p + 1)]).flat();
+    const blocks = Array.from({ length: 30 }, (_, p) => [
+      b("Walmart Inc.", p + 1),
+      b(`This is the body paragraph of the filing on page ${p + 1}.`, p + 1),
+    ]).flat();
     blocks.push(b("Overview", 5), b("Overview", 12), b("Overview", 20));
     const kept = removePageFurniture(blocks).map((x) => x.text);
     expect(kept).not.toContain("Walmart Inc.");
     expect(kept.filter((t) => t === "Overview")).toHaveLength(3);
-    expect(kept).toContain("Paragraph on page 7.");
+    expect(kept).toContain("This is the body paragraph of the filing on page 7.");
+  });
+
+  it("drops a running header whose page number changes (Target 2025: 38 passages had it as their subheading)", () => {
+    const blocks = Array.from({ length: 30 }, (_, p) => [
+      b(`TARGET CORPORATION 2025 Form 10-K ${p + 40}`, p + 1),
+      b(`This is the body paragraph of the filing on page ${p + 1}.`, p + 1),
+    ]).flat();
+    const kept = removePageFurniture(blocks).map((x) => x.text);
+    expect(kept.some((t) => t.startsWith("TARGET CORPORATION"))).toBe(false);
+    expect(kept).toHaveLength(30);
+  });
+
+  it("drops short lines naming the table of contents, like 'RISK FACTORS Table of Contents'", () => {
+    const kept = removePageFurniture([b("RISK FACTORS Table of Contents", 3), b("Supply Chain and Third-Party Risks", 3)]);
+    expect(kept.map((x) => x.text)).toEqual(["Supply Chain and Third-Party Risks"]);
+  });
+
+  it("blanks numbers only in lines that have letters", () => {
+    expect(runningHeaderKey("TARGET CORPORATION 2025 Form 10-K 51")).toBe("TARGET CORPORATION # Form #-K #");
+    expect(runningHeaderKey("2025 2024")).toBeUndefined();
   });
 
   it("never drops Item headings or table rows", () => {
