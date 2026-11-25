@@ -1,0 +1,762 @@
+[
+  {
+    "id": "m3-wmt-gross-margin",
+    "group": "handwritten",
+    "ticker": "WMT",
+    "question": "Why did Walmart's gross profit rate change?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "The basis-point change and the reasons MD&A gives (Walmart U.S. drivers, mix offsets), each cited to Item 7."
+  },
+  {
+    "id": "m3-tgt-buybacks",
+    "group": "handwritten",
+    "ticker": "TGT",
+    "question": "How much did Target spend on share repurchases, and how did that change?",
+    "fromYear": 2024,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "Repurchase amounts by year as the filing states them, with dollar figures that match XBRL or the text."
+  },
+  {
+    "id": "m3-cost-membership",
+    "group": "handwritten",
+    "ticker": "COST",
+    "question": "How much membership fee income did Costco earn, and what drove the change?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "Membership fee figure and the stated drivers (sign-ups, renewals, fee increase), cited to MD&A."
+  },
+  {
+    "id": "m3-kr-lifo",
+    "group": "handwritten",
+    "ticker": "KR",
+    "question": "What was Kroger's LIFO charge in each year, and what drove it?",
+    "fromYear": 2023,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "The LIFO charge for each year with the inflation explanation the filing gives, from three different 10-Ks."
+  },
+  {
+    "id": "m3-kr-operating-profit",
+    "group": "handwritten",
+    "ticker": "KR",
+    "question": "Why did Kroger's operating profit change in fiscal 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "The direction of the change and the specific items MD&A names, without invented causes."
+  },
+  {
+    "id": "m3-gap-comps",
+    "group": "handwritten",
+    "ticker": "GAP",
+    "question": "How did comparable sales perform for each of Gap Inc.'s brands?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "Comparable sales by brand (Old Navy, Gap, Banana Republic, Athleta) as in the comp sales table."
+  },
+  {
+    "id": "m3-five-stores",
+    "group": "handwritten",
+    "ticker": "FIVE",
+    "question": "How many new stores did Five Below open, and what are its plans for store growth?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "Net new stores for the year and the growth plans the filing describes."
+  },
+  {
+    "id": "m3-tgt-tariffs",
+    "group": "handwritten",
+    "ticker": "TGT",
+    "question": "How could tariffs affect Target's business?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "lookFor": "Risk Factors content: import exposure, cost and price effects, sourcing changes; cited to Item 1A."
+  },
+  {
+    "id": "m3-cost-forecast",
+    "group": "handwritten",
+    "ticker": "COST",
+    "question": "What will Costco's total revenue be next fiscal year?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "not_answered",
+    "lookFor": "Says the filing doesn't forecast revenue; gives no number of its own."
+  },
+  {
+    "id": "m3-wmt-ceo-pay",
+    "group": "handwritten",
+    "ticker": "WMT",
+    "question": "How much total compensation did Walmart's CEO receive last year?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "not_answered",
+    "lookFor": "Says the 10-K doesn't state it (executive pay is in the proxy statement); no figure."
+  },
+  {
+    "id": "num-wmt-revenue-2025",
+    "group": "numeric",
+    "ticker": "WMT",
+    "question": "What was Walmart's total revenue for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 713163000000,
+      "unit": "USD",
+      "concept": "us-gaap:Revenues",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $713.16 billion (713,163,000,000) (XBRL us-gaap:Revenues), supported by a cited passage."
+  },
+  {
+    "id": "num-wmt-operating-income-2024",
+    "group": "numeric",
+    "ticker": "WMT",
+    "question": "What was Walmart's operating income for the fiscal year ended January 31, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 29348000000,
+      "unit": "USD",
+      "concept": "us-gaap:OperatingIncomeLoss",
+      "periodEnd": "2025-01-31"
+    },
+    "lookFor": "States $29.35 billion (29,348,000,000) (XBRL us-gaap:OperatingIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-wmt-eps-diluted-2023",
+    "group": "numeric",
+    "ticker": "WMT",
+    "question": "What was Walmart's diluted earnings per share for the fiscal year ended January 31, 2024?",
+    "fromYear": 2023,
+    "toYear": 2023,
+    "expect": "answered",
+    "expected": {
+      "value": 1.91,
+      "unit": "USD/shares",
+      "concept": "us-gaap:EarningsPerShareDiluted",
+      "periodEnd": "2024-01-31"
+    },
+    "lookFor": "States $1.91 (XBRL us-gaap:EarningsPerShareDiluted), supported by a cited passage."
+  },
+  {
+    "id": "num-wmt-capex-2025",
+    "group": "numeric",
+    "ticker": "WMT",
+    "question": "What was Walmart's capital expenditures for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 26642000000,
+      "unit": "USD",
+      "concept": "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $26.64 billion (26,642,000,000) (XBRL us-gaap:PaymentsToAcquirePropertyPlantAndEquipment), supported by a cited passage."
+  },
+  {
+    "id": "num-wmt-inventory-2024",
+    "group": "numeric",
+    "ticker": "WMT",
+    "question": "What was Walmart's merchandise inventory at the end of the fiscal year ended January 31, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 56435000000,
+      "unit": "USD",
+      "concept": "us-gaap:InventoryNet",
+      "periodEnd": "2025-01-31"
+    },
+    "lookFor": "States $56.44 billion (56,435,000,000) (XBRL us-gaap:InventoryNet), supported by a cited passage."
+  },
+  {
+    "id": "num-tgt-revenue-2024",
+    "group": "numeric",
+    "ticker": "TGT",
+    "question": "What was Target's total revenue for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 106566000000,
+      "unit": "USD",
+      "concept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $106.57 billion (106,566,000,000) (XBRL us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax), supported by a cited passage."
+  },
+  {
+    "id": "num-tgt-net-income-2025",
+    "group": "numeric",
+    "ticker": "TGT",
+    "question": "What was Target's net income for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 3705000000,
+      "unit": "USD",
+      "concept": "us-gaap:NetIncomeLoss",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $3.71 billion (3,705,000,000) (XBRL us-gaap:NetIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-tgt-eps-diluted-2024",
+    "group": "numeric",
+    "ticker": "TGT",
+    "question": "What was Target's diluted earnings per share for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 8.86,
+      "unit": "USD/shares",
+      "concept": "us-gaap:EarningsPerShareDiluted",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $8.86 (XBRL us-gaap:EarningsPerShareDiluted), supported by a cited passage."
+  },
+  {
+    "id": "num-tgt-buybacks-2024",
+    "group": "numeric",
+    "ticker": "TGT",
+    "question": "What was Target's spending on share repurchases for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 1007000000,
+      "unit": "USD",
+      "concept": "us-gaap:PaymentsForRepurchaseOfCommonStock",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $1.01 billion (1,007,000,000) (XBRL us-gaap:PaymentsForRepurchaseOfCommonStock), supported by a cited passage."
+  },
+  {
+    "id": "num-tgt-dividends-2025",
+    "group": "numeric",
+    "ticker": "TGT",
+    "question": "What was Target's total dividends paid for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 2053000000,
+      "unit": "USD",
+      "concept": "us-gaap:PaymentsOfDividendsCommonStock",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $2.05 billion (2,053,000,000) (XBRL us-gaap:PaymentsOfDividendsCommonStock), supported by a cited passage."
+  },
+  {
+    "id": "num-cost-revenue-2023",
+    "group": "numeric",
+    "ticker": "COST",
+    "question": "What was Costco's total revenue for the fiscal year ended September 3, 2023?",
+    "fromYear": 2023,
+    "toYear": 2023,
+    "expect": "answered",
+    "expected": {
+      "value": 242290000000,
+      "unit": "USD",
+      "concept": "us-gaap:Revenues",
+      "periodEnd": "2023-09-03"
+    },
+    "lookFor": "States $242.29 billion (242,290,000,000) (XBRL us-gaap:Revenues), supported by a cited passage."
+  },
+  {
+    "id": "num-cost-net-income-2024",
+    "group": "numeric",
+    "ticker": "COST",
+    "question": "What was Costco's net income for the fiscal year ended September 1, 2024?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 7367000000,
+      "unit": "USD",
+      "concept": "us-gaap:NetIncomeLoss",
+      "periodEnd": "2024-09-01"
+    },
+    "lookFor": "States $7.37 billion (7,367,000,000) (XBRL us-gaap:NetIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-cost-operating-cash-flow-2025",
+    "group": "numeric",
+    "ticker": "COST",
+    "question": "What was Costco's cash provided by operating activities for the fiscal year ended August 31, 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 13335000000,
+      "unit": "USD",
+      "concept": "us-gaap:NetCashProvidedByUsedInOperatingActivities",
+      "periodEnd": "2025-08-31"
+    },
+    "lookFor": "States $13.34 billion (13,335,000,000) (XBRL us-gaap:NetCashProvidedByUsedInOperatingActivities), supported by a cited passage."
+  },
+  {
+    "id": "num-cost-capex-2024",
+    "group": "numeric",
+    "ticker": "COST",
+    "question": "What was Costco's capital expenditures for the fiscal year ended September 1, 2024?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 4710000000,
+      "unit": "USD",
+      "concept": "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment",
+      "periodEnd": "2024-09-01"
+    },
+    "lookFor": "States $4.71 billion (4,710,000,000) (XBRL us-gaap:PaymentsToAcquirePropertyPlantAndEquipment), supported by a cited passage."
+  },
+  {
+    "id": "num-cost-eps-diluted-2025",
+    "group": "numeric",
+    "ticker": "COST",
+    "question": "What was Costco's diluted earnings per share for the fiscal year ended August 31, 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 18.21,
+      "unit": "USD/shares",
+      "concept": "us-gaap:EarningsPerShareDiluted",
+      "periodEnd": "2025-08-31"
+    },
+    "lookFor": "States $18.21 (XBRL us-gaap:EarningsPerShareDiluted), supported by a cited passage."
+  },
+  {
+    "id": "num-kr-revenue-2025",
+    "group": "numeric",
+    "ticker": "KR",
+    "question": "What was Kroger's total revenue for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 147642000000,
+      "unit": "USD",
+      "concept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $147.64 billion (147,642,000,000) (XBRL us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax), supported by a cited passage."
+  },
+  {
+    "id": "num-kr-operating-income-2023",
+    "group": "numeric",
+    "ticker": "KR",
+    "question": "What was Kroger's operating income for the fiscal year ended February 3, 2024?",
+    "fromYear": 2023,
+    "toYear": 2023,
+    "expect": "answered",
+    "expected": {
+      "value": 3096000000,
+      "unit": "USD",
+      "concept": "us-gaap:OperatingIncomeLoss",
+      "periodEnd": "2024-02-03"
+    },
+    "lookFor": "States $3.10 billion (3,096,000,000) (XBRL us-gaap:OperatingIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-kr-net-income-2024",
+    "group": "numeric",
+    "ticker": "KR",
+    "question": "What was Kroger's net income for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 2665000000,
+      "unit": "USD",
+      "concept": "us-gaap:NetIncomeLoss",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $2.67 billion (2,665,000,000) (XBRL us-gaap:NetIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-kr-eps-diluted-2025",
+    "group": "numeric",
+    "ticker": "KR",
+    "question": "What was Kroger's diluted earnings per share for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 1.54,
+      "unit": "USD/shares",
+      "concept": "us-gaap:EarningsPerShareDiluted",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $1.54 (XBRL us-gaap:EarningsPerShareDiluted), supported by a cited passage."
+  },
+  {
+    "id": "num-kr-long-term-debt-2025",
+    "group": "numeric",
+    "ticker": "KR",
+    "question": "What was Kroger's long-term debt at the end of the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 14509000000,
+      "unit": "USD",
+      "concept": "us-gaap:LongTermDebtNoncurrent",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $14.51 billion (14,509,000,000) (XBRL us-gaap:LongTermDebtNoncurrent), supported by a cited passage."
+  },
+  {
+    "id": "num-gap-revenue-2025",
+    "group": "numeric",
+    "ticker": "GAP",
+    "question": "What was Gap Inc.'s total revenue for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 15366000000,
+      "unit": "USD",
+      "concept": "us-gaap:Revenues",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $15.37 billion (15,366,000,000) (XBRL us-gaap:Revenues), supported by a cited passage."
+  },
+  {
+    "id": "num-gap-net-income-2023",
+    "group": "numeric",
+    "ticker": "GAP",
+    "question": "What was Gap Inc.'s net income for the fiscal year ended February 3, 2024?",
+    "fromYear": 2023,
+    "toYear": 2023,
+    "expect": "answered",
+    "expected": {
+      "value": 502000000,
+      "unit": "USD",
+      "concept": "us-gaap:NetIncomeLoss",
+      "periodEnd": "2024-02-03"
+    },
+    "lookFor": "States $502.0 million (502,000,000) (XBRL us-gaap:NetIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-gap-operating-income-2024",
+    "group": "numeric",
+    "ticker": "GAP",
+    "question": "What was Gap Inc.'s operating income for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 1112000000,
+      "unit": "USD",
+      "concept": "us-gaap:OperatingIncomeLoss",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $1.11 billion (1,112,000,000) (XBRL us-gaap:OperatingIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-gap-inventory-2025",
+    "group": "numeric",
+    "ticker": "GAP",
+    "question": "What was Gap Inc.'s merchandise inventory at the end of the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 2207000000,
+      "unit": "USD",
+      "concept": "us-gaap:InventoryFinishedGoodsNetOfReserves",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $2.21 billion (2,207,000,000) (XBRL us-gaap:InventoryFinishedGoodsNetOfReserves), supported by a cited passage."
+  },
+  {
+    "id": "num-gap-eps-diluted-2024",
+    "group": "numeric",
+    "ticker": "GAP",
+    "question": "What was Gap Inc.'s diluted earnings per share for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 2.2,
+      "unit": "USD/shares",
+      "concept": "us-gaap:EarningsPerShareDiluted",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $2.20 (XBRL us-gaap:EarningsPerShareDiluted), supported by a cited passage."
+  },
+  {
+    "id": "num-five-revenue-2024",
+    "group": "numeric",
+    "ticker": "FIVE",
+    "question": "What was Five Below's total revenue for the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 3876527000,
+      "unit": "USD",
+      "concept": "us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $3.88 billion (3,876,527,000) (XBRL us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax), supported by a cited passage."
+  },
+  {
+    "id": "num-five-net-income-2025",
+    "group": "numeric",
+    "ticker": "FIVE",
+    "question": "What was Five Below's net income for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 358641000,
+      "unit": "USD",
+      "concept": "us-gaap:NetIncomeLoss",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $358.6 million (358,641,000) (XBRL us-gaap:NetIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-five-operating-income-2023",
+    "group": "numeric",
+    "ticker": "FIVE",
+    "question": "What was Five Below's operating income for the fiscal year ended February 3, 2024?",
+    "fromYear": 2023,
+    "toYear": 2023,
+    "expect": "answered",
+    "expected": {
+      "value": 385571000,
+      "unit": "USD",
+      "concept": "us-gaap:OperatingIncomeLoss",
+      "periodEnd": "2024-02-03"
+    },
+    "lookFor": "States $385.6 million (385,571,000) (XBRL us-gaap:OperatingIncomeLoss), supported by a cited passage."
+  },
+  {
+    "id": "num-five-capex-2025",
+    "group": "numeric",
+    "ticker": "FIVE",
+    "question": "What was Five Below's capital expenditures for the fiscal year ended January 31, 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "expect": "answered",
+    "expected": {
+      "value": 174741000,
+      "unit": "USD",
+      "concept": "us-gaap:PaymentsToAcquirePropertyPlantAndEquipment",
+      "periodEnd": "2026-01-31"
+    },
+    "lookFor": "States $174.7 million (174,741,000) (XBRL us-gaap:PaymentsToAcquirePropertyPlantAndEquipment), supported by a cited passage."
+  },
+  {
+    "id": "num-five-inventory-2024",
+    "group": "numeric",
+    "ticker": "FIVE",
+    "question": "What was Five Below's merchandise inventory at the end of the fiscal year ended February 1, 2025?",
+    "fromYear": 2024,
+    "toYear": 2024,
+    "expect": "answered",
+    "expected": {
+      "value": 659500000,
+      "unit": "USD",
+      "concept": "us-gaap:InventoryNet",
+      "periodEnd": "2025-02-01"
+    },
+    "lookFor": "States $659.5 million (659,500,000) (XBRL us-gaap:InventoryNet), supported by a cited passage."
+  },
+  {
+    "id": "na-wmt-grocery-share",
+    "ticker": "WMT",
+    "question": "What is Walmart's market share of U.S. grocery sales?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Says the filing doesn't state a market share; no invented percentage.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-tgt-analyst-eps",
+    "ticker": "TGT",
+    "question": "What earnings per share did analysts expect Target to report for fiscal 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Analyst estimates aren't in a 10-K; may give the reported EPS only as context.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-tgt-ceo-salary",
+    "ticker": "TGT",
+    "question": "What was the base salary of Target's CEO?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Executive pay is in the proxy statement, not the 10-K.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-cost-member-age",
+    "ticker": "COST",
+    "question": "What is the average age of a Costco member?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Not disclosed; no invented age.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-kr-texas-share",
+    "ticker": "KR",
+    "question": "What is Kroger's market share in Texas?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Not disclosed by state; no invented figure.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-gap-2026-comps",
+    "ticker": "GAP",
+    "question": "What comparable sales growth does Gap Inc. forecast for fiscal 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "No comparable sales forecast in the 10-K.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-gap-athleta-units",
+    "ticker": "GAP",
+    "question": "How many pairs of Athleta leggings were sold in fiscal 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Unit sales by product aren't disclosed.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-five-2026-income",
+    "ticker": "FIVE",
+    "question": "What net income will Five Below earn in fiscal 2026?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "No earnings forecast in the 10-K (store-opening plans don't answer it).",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-five-price-target",
+    "ticker": "FIVE",
+    "question": "What is the analyst consensus price target for Five Below's stock?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Price targets aren't in a 10-K.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "na-wmt-store-manager-pay",
+    "ticker": "WMT",
+    "question": "How much does a Walmart store manager earn on average?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Not disclosed as an average figure; no invented number.",
+    "group": "unanswerable",
+    "expect": "not_answered"
+  },
+  {
+    "id": "ex-cost-gross-margin",
+    "ticker": "COST",
+    "question": "Why did Costco's gross margin percentage change?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "The basis-point change and the drivers MD&A names, cited.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-tgt-comps",
+    "ticker": "TGT",
+    "question": "Why did Target's comparable sales change in fiscal 2025?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Direction of comps and the reasons MD&A gives (traffic, ticket, categories), cited.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-gap-athleta",
+    "ticker": "GAP",
+    "question": "Why did Athleta's sales decline?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "The reasons the filing gives for Athleta's decline, or says it doesn't explain them.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-kr-albertsons",
+    "ticker": "KR",
+    "question": "What happened with Kroger's proposed merger with Albertsons?",
+    "fromYear": 2024,
+    "toYear": 2025,
+    "lookFor": "Termination and the litigation or costs the filings describe, cited.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-wmt-automation",
+    "ticker": "WMT",
+    "question": "How is Walmart using automation in its supply chain?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Automation investments the filing describes, cited; no outside knowledge.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-five-sourcing",
+    "ticker": "FIVE",
+    "question": "What risks does Five Below describe related to sourcing merchandise from China?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "Import dependence, tariffs and supplier risks from Item 1A, cited.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-cost-ecommerce",
+    "ticker": "COST",
+    "question": "How did Costco's e-commerce business perform?",
+    "fromYear": 2025,
+    "toYear": 2025,
+    "lookFor": "E-commerce growth as the filing states it, cited.",
+    "group": "explanation",
+    "expect": "answered"
+  },
+  {
+    "id": "ex-wmt-inventory",
+    "ticker": "WMT",
+    "question": "Why did Walmart's inventory change between the last two fiscal years?",
+    "fromYear": 2024,
+    "toYear": 2025,
+    "lookFor": "The inventory change and the reasons the liquidity discussion gives, cited.",
+    "group": "explanation",
+    "expect": "answered"
+  }
+]

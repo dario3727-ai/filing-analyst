@@ -23,3 +23,8 @@ next-env.d.ts
 .vercel
 *.pem
 npm-debug.log*
+**/traces/
+.claude/hillclimb/**/report.html
+.claude/hillclimb/**/trajectory/
+.claude/hillclimb/**/progress.txt
+.claude/hillclimb/qa-pilot/

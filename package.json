@@ -24,7 +24,9 @@
     "search": "node --env-file-if-exists=.env.local scripts/search.ts",
     "ask": "node --env-file-if-exists=.env.local scripts/ask.ts",
     "check:questions": "node --env-file-if-exists=.env.local scripts/check-questions.ts",
-    "risks": "node --env-file-if-exists=.env.local scripts/risks.ts"
+    "risks": "node --env-file-if-exists=.env.local scripts/risks.ts",
+    "eval:cases": "node --env-file-if-exists=.env.local scripts/eval-generate-cases.ts",
+    "eval": "node --env-file-if-exists=.env.local eval/qa/run-eval.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^1.14.0",
