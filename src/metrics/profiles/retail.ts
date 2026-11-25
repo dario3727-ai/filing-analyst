@@ -49,6 +49,19 @@ const inputs: readonly InputDef[] = [
     ],
   },
   {
+    id: "sga",
+    displayOnly: true,
+    label: "SG&A expenses",
+    kind: "duration",
+    unit: "USD",
+    tags: [
+      usGaap("SellingGeneralAndAdministrativeExpense"),
+      // Gap's income statement has one "operating expenses" line in place of SG&A.
+      // Kroger has no standard tag (its OG&A line isn't in the SEC's company facts).
+      usGaap("OperatingExpenses", "Uses the company's total operating expenses line, which may include more than SG&A"),
+    ],
+  },
+  {
     id: "operating_income",
     label: "Operating income",
     kind: "duration",
@@ -94,6 +107,24 @@ const inputs: readonly InputDef[] = [
     ],
   },
   {
+    id: "buybacks",
+    displayOnly: true,
+    label: "Share buybacks",
+    kind: "duration",
+    unit: "USD",
+    tags: [usGaap("PaymentsForRepurchaseOfCommonStock"), usGaap("PaymentsForRepurchaseOfEquity")], // Five Below 2019
+  },
+  {
+    id: "dividends",
+    displayOnly: true,
+    label: "Dividends paid",
+    kind: "duration",
+    unit: "USD",
+    // Common dividends first; the broader tag where that's all a company reports (Gap, Costco to 2021).
+    // Five Below and Adobe pay no dividends, so nothing is found for them.
+    tags: [usGaap("PaymentsOfDividendsCommonStock"), usGaap("PaymentsOfDividends")],
+  },
+  {
     id: "inventory",
     label: "Inventory",
     kind: "instant",
@@ -120,6 +151,18 @@ const inputs: readonly InputDef[] = [
     tags: [usGaap("LiabilitiesCurrent")],
   },
   { id: "total_assets", label: "Total assets", kind: "instant", unit: "USD", tags: [usGaap("Assets")] },
+  {
+    id: "long_term_debt",
+    displayOnly: true,
+    label: "Long-term debt",
+    kind: "instant",
+    unit: "USD",
+    tags: [
+      usGaap("LongTermDebtNoncurrent"),
+      usGaap("LongTermDebtAndCapitalLeaseObligations", "Long-term debt includes finance lease obligations"), // Target
+      usGaap("LongTermDebt", "Long-term debt includes the portion due within a year"), // Adobe 2022+
+    ],
+  },
 ];
 
 // --- formula helpers ----------------------------------------------------------

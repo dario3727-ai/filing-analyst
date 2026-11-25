@@ -140,7 +140,7 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
         </p>
       )}
 
-      <Section title="Key financials" source="Milestone 1 · XBRL company facts → financial_facts (profile inputs, first matching tag wins)">
+      <Section title="Key financials" source="Milestone 1 · XBRL company facts → financial_facts (hover a value to see its XBRL tag; — means not reported)">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-sm">
             <thead>
@@ -151,7 +151,6 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
                     FY{y}
                   </th>
                 ))}
-                <th className={th}>XBRL tag used</th>
               </tr>
             </thead>
             <tbody>
@@ -162,11 +161,10 @@ function YearSections({ report, years }: { report: ReportData; years: number[] }
                     <Sup notes={row.footnotes} />
                   </td>
                   {row.cells.map((c, i) => (
-                    <td key={years[i]} className={`${td} text-right tabular-nums`}>
+                    <td key={years[i]} className={`${td} text-right tabular-nums`} title={c?.tag}>
                       {c ? formatMoney(c.value, row.unit) : "—"}
                     </td>
                   ))}
-                  <td className={`${td} font-mono text-xs`}>{row.tags.join(", ") || "none found"}</td>
                 </tr>
               ))}
             </tbody>

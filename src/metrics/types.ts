@@ -23,6 +23,8 @@ export interface InputDef {
   unit: FactUnit;
   /** Tried in order; the first tag with a value for that fiscal year wins. */
   tags: readonly TagOption[];
+  /** Shown in Key financials but not used by any metric yet. */
+  displayOnly?: boolean;
 }
 
 /** How a metric's value should be read and displayed. Stored values are plain numbers. */

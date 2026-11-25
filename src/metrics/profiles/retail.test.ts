@@ -36,11 +36,14 @@ describe("retail profile structure", () => {
     expect(new Set(metricIds).size).toBe(metricIds.length);
   });
 
-  it("only requires inputs the profile defines, and uses every input", () => {
+  it("only requires inputs the profile defines, and uses every input not marked display-only", () => {
     const inputIds = new Set(retailProfile.inputs.map((i) => i.id));
     const used = new Set(retailProfile.metrics.flatMap((m) => m.requires.map((r) => r.input)));
     for (const id of used) expect(inputIds.has(id), `unknown input ${id}`).toBe(true);
-    for (const id of inputIds) expect(used.has(id), `unused input ${id}`).toBe(true);
+    for (const input of retailProfile.inputs) {
+      if (input.displayOnly) expect(used.has(input.id), `${input.id} is used by a metric; drop displayOnly`).toBe(false);
+      else expect(used.has(input.id), `unused input ${input.id}`).toBe(true);
+    }
   });
 
   it("lists at least one well-formed, non-repeated tag per input", () => {
