@@ -54,5 +54,5 @@
     "src/lib/qa/xbrl-passages.ts",
     "src/lib/qa/load-facts.ts"
   ],
-  "harness_sha": "610f485c244282d1fcd54bed270be2c4fa0743cf0f79d4805d08ac316a731c75"
+  "harness_sha": "fe421c4ee8e9657bb70ceb8e4c061ff368d47e19566e451c9145ac6ad7ace220"
 }
