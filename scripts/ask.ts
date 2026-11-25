@@ -5,6 +5,8 @@ import { parseArgs } from "node:util";
 import Anthropic from "@anthropic-ai/sdk";
 import { createClient } from "@supabase/supabase-js";
 import { answerQuestion, DEV_MODEL, QA_MODEL } from "../src/lib/qa/answer.ts";
+import { loadFactsForCheck } from "../src/lib/qa/load-facts.ts";
+import { checkFigures } from "../src/lib/qa/numbers.ts";
 import { searchPassages } from "../src/lib/search/hybrid.ts";
 import { createVoyageClientFromEnv } from "../src/lib/voyage/client.ts";
 
@@ -64,5 +66,20 @@ if (answer.citedPassageIds.length > 0) console.log("\nSources:");
 for (const id of answer.citedPassageIds) {
   const p = passages.find((x) => x.id === id)!;
   console.log(`  [${numberOf.get(id)}] FY${p.fiscalYear} Item ${p.item}${p.heading ? ` · ${p.heading}` : ""}, p. ${p.pageStart}  (passage ${id})`);
+}
+const facts = await loadFactsForCheck(db, Number(company.id), fromYear, toYear);
+const check = checkFigures(answer.text, facts, passages.map((p) => p.content));
+if (check.total > 0) {
+  console.log(
+    `\nNumbers: ${check.total} found · ${check.xbrl} match XBRL · ${check.passage} quoted from the filing text · ${check.unverified} unverified`,
+  );
+  for (const f of check.figures) {
+    const detail =
+      f.status === "xbrl"
+        ? `XBRL ${f.match!.concept} FY${f.match!.fiscalYear} = ${f.match!.value}`
+        : (f.status === "passage" ? "in the passages" : "NOT FOUND in XBRL or passages") +
+          (f.xbrlCandidates ? ` (value shared by ${f.xbrlCandidates} XBRL items, so not counted)` : "");
+    console.log(`  ${f.figure.raw.padEnd(18)} ${detail}`);
+  }
 }
 console.log(`\n${passages.length} passages sent · ${answer.inputTokens} input + ${answer.outputTokens} output tokens`);

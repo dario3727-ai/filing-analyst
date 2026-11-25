@@ -48,7 +48,7 @@ Unstyled on purpose: shows which features exist and which numbers clutter or are
 - [x] Voyage embeddings for all chunks, in batches (4,874 passages in 21 filings; decisions 2026-11-24)
 - [x] Hybrid search as a Postgres function (vector + full-text), filtered by company (`search_chunks`; try it with `npm run search`)
 - [x] Q&A function: Claude with citations over the top passages (`answerQuestion`; try it with `npm run ask`)
-- [ ] Number check against `financial_facts`
+- [x] Number check against `financial_facts` (`checkFigures`; shown by `npm run ask`)
 - [ ] `answers` table and logging
 - [ ] API route `/api/ask`
 - **Done when:** 10 hand-written questions return correct, cited answers.
