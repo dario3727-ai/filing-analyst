@@ -76,6 +76,7 @@ Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages 
 
 ## Milestone 6: ship (week 8)
 - [ ] What changed follows the latest selected year only (noted 2026-11-27, not built yet): the year range keeps driving the numbers, but What changed shows one comparison, the latest selected fiscal year vs the year before (e.g. FY2025 vs FY2024), the redline professionals read; a small selector lets the reader step back to an earlier consecutive pair. Replaces today's stack of every consecutive pair in the range. A per-risk history across years was considered and left out.
+- [ ] Link each Key financials figure to its 10-K table (noted 2026-11-27, not built yet): inline XBRL tags in the stored 10-K HTML mark where each reported figure sits. An ingest step finds each Key financials figure in its primary financial statement table (skipping MD&A, notes and segment breakdowns; reading the context definitions the parser drops today) and records the location; an icon next to the figure opens the side panel with that statement table and the cell highlighted, plus the sec.gov link. Opens in the 10-K that supplied the figure; plain text where that filing isn't downloaded. Ratios need no link: their inputs are linked.
 - [ ] Deploy to Vercel; keep the Supabase project from pausing
 - [ ] README: setup steps, architecture diagram, eval results, limitations
 - [ ] 2-minute demo video and screenshots
