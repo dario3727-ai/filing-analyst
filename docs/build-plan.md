@@ -75,6 +75,7 @@ Bare-bones look kept on purpose (decisions 2026-11-24): the milestone 2.5 pages 
 - **Milestone 5 completed 2026-11-25:** What changed live for all seven companies (14 year pairs); eval on 58 questions: Sonnet 79.3%, Haiku 75.9%, recorded in the README.
 
 ## Milestone 6: ship (week 8)
+- [ ] What changed follows the latest selected year only (noted 2026-11-27, not built yet): the year range keeps driving the numbers, but What changed shows one comparison, the latest selected fiscal year vs the year before (e.g. FY2025 vs FY2024), the redline professionals read; a small selector lets the reader step back to an earlier consecutive pair. Replaces today's stack of every consecutive pair in the range. A per-risk history across years was considered and left out.
 - [ ] Deploy to Vercel; keep the Supabase project from pausing
 - [ ] README: setup steps, architecture diagram, eval results, limitations
 - [ ] 2-minute demo video and screenshots
